@@ -1,0 +1,10 @@
+<resources>
+
+    <string name="app_name">Fake Chat App</string>
+
+    <string name="whatsapp_encryption_message">Messages to this chat and calls are now secured with end-to-end encryption. Tap for more info.</string>
+    <string name="please_wait">Please wait...</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+
+</resources>

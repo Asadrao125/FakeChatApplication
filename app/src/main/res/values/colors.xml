@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+    <color name="whatsapp_green">#0B1316</color>
+    <color name="green">#077E54</color>
+    <color name="yellow">#FFEB3B</color>
+    <color name="gray">#aaa</color>
+    <color name="trans_gray">#66AAAAAA</color>
+    <color name="blue">#6CB4EE</color>
+    <color name="whatsapp_bg_green">#66075E54</color>
+    <color name="transparent">#66000000</color>
+    <color name="dark_gray">#A9A9A9</color>
+
+    <color name="coal_black">#353839</color>
+
+    <color name="r_1">#556B2F</color>
+    <color name="r_2">#2F4F4F</color>
+    <color name="r_3">#008080</color>
+    <color name="r_4">#C28E92</color>
+    <color name="r_5">#AAB5A1</color>
+    <color name="r_6">#B2BEB5</color>
+    <color name="r_7">#BFA3D2</color>
+    <color name="r_8">#6C7B8B</color>
+    <color name="r_9">#A5A86A</color>
+    <color name="r_10">#725671</color>
+    <color name="r_11">#708090</color>
+    <color name="r_12">#B897A3</color>
+    <color name="r_13">#808080</color>
+    <color name="r_14">#A9A9A9</color>
+    <color name="r_15">#000000</color>
+
+    <color name="search_bg_color">#212A2E</color>
+    <color name="fab_green">#1BBF5F</color>
+    <color name="bottom_nav_bg_color">#0D3427</color>
+    <color name="bottom_nav_icon_bg_color">#661BBF5F</color>
+    <color name="bottom_nav_icon_tint_color">#D6FDD1</color>
+
+    <color name="item_chat_left_bg_color">#363638</color>
+
+</resources>
