@@ -11,6 +11,7 @@ import com.android.app.fakechatapp.R
 import com.android.app.fakechatapp.adapters.CallDetailsAdapter
 import com.android.app.fakechatapp.activities.call.audio.CallActivity
 import com.android.app.fakechatapp.activities.call.video.VideoCallActivity
+import com.android.app.fakechatapp.activities.viewimage.ImageViewActivity
 import com.android.app.fakechatapp.database.Database
 import com.android.app.fakechatapp.databinding.ActivityCallDetailsBinding
 import com.android.app.fakechatapp.models.Call
@@ -58,6 +59,14 @@ class CallDetailsActivity : AppCompatActivity() {
 
         Picasso.get().load(File(user.profileImage)).placeholder(R.drawable.ic_user)
             .into(binding.profilePic)
+
+        binding.profilePic.setOnClickListener {
+            startActivity(
+                Intent(applicationContext, ImageViewActivity::class.java)
+                    .putExtra("image_path", user.profileImage)
+                    .setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+            )
+        }
 
         binding.imgAudioCall.setOnClickListener {
             val callId = database.insertCall(

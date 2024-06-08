@@ -24,11 +24,10 @@ class ImageViewActivity : AppCompatActivity() {
         toolbarTitle = findViewById(R.id.toolbarTitle)
 
         imgBack.setOnClickListener { onBackPressed() }
-        toolbarTitle.text = "Add Contact"
+        toolbarTitle.text = "Image"
 
         Glide.with(applicationContext)
             .load(imagePath)
-            .centerCrop()
             .placeholder(R.drawable.ic_user)
             .into(binding.image)
     }

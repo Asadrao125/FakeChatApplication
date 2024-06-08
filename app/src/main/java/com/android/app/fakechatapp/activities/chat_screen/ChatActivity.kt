@@ -63,7 +63,6 @@ class ChatActivity : AppCompatActivity() {
     private var videoPath: String = ""
     private var imagePath = ""
     private var filePath = ""
-    private var isFromMe = true
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -82,8 +81,6 @@ class ChatActivity : AppCompatActivity() {
         else binding.tvLastSeen.visibility = VISIBLE
 
         binding.tvLastSeen.text = intent.getStringExtra("last_seen")
-        binding.tvEncryption.text = intent.getStringExtra("enc_text")
-        binding.tvDate.text = intent.getStringExtra("date")
 
         user = database.getSingleUser(intent.getIntExtra("user_id", 0))
 
@@ -207,8 +204,10 @@ class ChatActivity : AppCompatActivity() {
         }
 
         binding.imgAttachment.setOnClickListener {
-            showAttachmentDialog()
+            showSendReceiveDialog()
         }
+
+        setChatsData()
     }
 
     private fun startVideoCall() {
@@ -238,40 +237,11 @@ class ChatActivity : AppCompatActivity() {
         val chats = database.getUserChats(intent.getIntExtra("user_id", 0))
         if (chats != null) {
             adapter.setData(chats)
-            handleRecyclerClick(chats)
-            scrollNestedScrollViewToBottom()
         }
     }
 
-    private fun scrollNestedScrollViewToBottom() {
-        binding.chatRecyclerview.isNestedScrollingEnabled = false
-        binding.nsv.post { binding.nsv.fullScroll(View.FOCUS_DOWN) }
-    }
-
-    private fun handleRecyclerClick(chats: ArrayList<Chat>) {
-        binding.chatRecyclerview.addOnItemTouchListener(
-            RecyclerItemClickListener(
-                this,
-                binding.chatRecyclerview,
-                object : RecyclerItemClickListener.OnItemClickListener {
-                    override fun onItemClick(view: View?, position: Int) {
-                        val selectedChat: Chat = chats[position]
-                        if (selectedChat.viewType == 3 || selectedChat.viewType == 4) {
-                            startActivity(
-                                Intent(
-                                    applicationContext,
-                                    ImageViewActivity::class.java
-                                ).putExtra("image_path", selectedChat.imagePath)
-                            )
-                        } else if (selectedChat.viewType == 5 || selectedChat.viewType == 6) {
-
-                        }
-                    }
-
-                    override fun onItemLongClick(view: View?, position: Int) {}
-                }
-            )
-        )
+    fun scrollToBottom() {
+        binding.chatRecyclerview.scrollToPosition(adapter.itemCount - 1)
     }
 
     @Deprecated("Deprecated in Java")
@@ -330,22 +300,6 @@ class ChatActivity : AppCompatActivity() {
         }
     }
 
-    private fun showConfirmationDialog() {
-        val builder = AlertDialog.Builder(this)
-        builder.setTitle("From who?")
-        builder.setCancelable(false)
-        builder.setPositiveButton("ME") { dialog, _ ->
-            isFromMe = true
-            dialog.dismiss()
-        }
-        builder.setNegativeButton("MY FRIEND") { dialog, _ ->
-            isFromMe = false
-            dialog.dismiss()
-        }
-        val dialog = builder.create()
-        dialog.show()
-    }
-
     private fun saveImageMessage() {
         database.insertChat(
             Chat(
@@ -355,7 +309,7 @@ class ChatActivity : AppCompatActivity() {
                 time = chatViewModel.getCurrentTime(),
                 senderId = user.userId,
                 receiverId = user.userId,
-                viewType = 4,
+                viewType = if (isMyMessage) 4 else 3,
                 date = chatViewModel.getCurrentDate(),
                 imagePath = imagePath,
                 filePath = ""
@@ -415,6 +369,11 @@ class ChatActivity : AppCompatActivity() {
         setChatsData()
     }
 
+    override fun onResume() {
+        super.onResume()
+        setChatsData()
+    }
+
     private fun getPath(uri: Uri?): String? {
         val projection = arrayOf(MediaStore.Video.Media.DATA)
         val cursor = contentResolver.query(uri!!, projection, null, null, null)
@@ -423,11 +382,6 @@ class ChatActivity : AppCompatActivity() {
             cursor.moveToFirst()
             cursor.getString(columnIndex)
         } else null
-    }
-
-    override fun onResume() {
-        super.onResume()
-        setChatsData()
     }
 
     private suspend fun saveImageToCache(bitmapImage: Bitmap): Boolean =
@@ -445,7 +399,7 @@ class ChatActivity : AppCompatActivity() {
                 var fos: FileOutputStream? = null
                 try {
                     fos = FileOutputStream(myPath)
-                    bitmapImage.compress(Bitmap.CompressFormat.JPEG, 100, fos)
+                    bitmapImage.compress(Bitmap.CompressFormat.JPEG, 50, fos)
                     fos.flush()
                     taskCompleted = true
                 } catch (e: Exception) {
@@ -642,6 +596,38 @@ class ChatActivity : AppCompatActivity() {
             dialog.dismiss()
         }
         dialog.show()
+    }
+
+    private var isMyMessage: Boolean = true
+
+    private fun showSendReceiveDialog() {
+        val dialog = Dialog(this)
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
+        dialog.setContentView(R.layout.dialog_send_and_recieve_layout)
+        val receiveLayout = dialog.findViewById<LinearLayout>(R.id.receiveLayout)
+        val sendLayout = dialog.findViewById<LinearLayout>(R.id.sendLayout)
+
+        dialog.window?.setBackgroundDrawableResource(R.drawable.chatbg)
+        dialog.window?.setDimAmount(0F)
+
+        receiveLayout.setOnClickListener {
+            isMyMessage = false
+            showAttachmentDialog()
+            dialog.dismiss()
+        }
+
+        sendLayout.setOnClickListener {
+            isMyMessage = true
+            showAttachmentDialog()
+            dialog.dismiss()
+        }
+
+        dialog.show()
+
+        val window = dialog.window
+        val layoutParams = window?.attributes
+        layoutParams?.width = (resources.displayMetrics.widthPixels * 0.9).toInt()
+        window?.attributes = layoutParams
     }
 
     private fun galleryIntent() {

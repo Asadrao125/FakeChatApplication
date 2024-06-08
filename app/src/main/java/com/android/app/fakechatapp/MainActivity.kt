@@ -108,6 +108,16 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    fun hideBottomNav(isShowBottom: Boolean) {
+        if (isShowBottom) {
+            binding.bottomNav.visibility = VISIBLE
+            binding.fab.visibility = VISIBLE
+        } else {
+            binding.bottomNav.visibility = GONE
+            binding.fab.visibility = GONE
+        }
+    }
+
     fun setChatView() {
         binding.imgChats.setBackgroundDrawable(R.drawable.bottom_nav_bg)
         binding.imgStatus.background = null

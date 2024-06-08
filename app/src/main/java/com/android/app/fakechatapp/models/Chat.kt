@@ -13,10 +13,11 @@ data class Chat(
     val filePath: String = ""
 )
 
-/* viewType
-*  1 My Plain Message
-*  2 Sender Plain Message
-*  3 Sender Image Message
-*  4 Sender Image Message
-*  5 Sender File Message
-*  6 Sender File Message */
+/* View Type
+const val MSG_TYPE_LEFT: Int = 1
+const val MSG_TYPE_RIGHT: Int = 2
+const val MSG_TYPE_LEFT_IMAGE: Int = 3
+const val MSG_TYPE_RIGHT_IMAGE: Int = 4
+const val MSG_TYPE_LEFT_FILE: Int = 5
+const val MSG_TYPE_RIGHT_FILE: Int = 6
+* */

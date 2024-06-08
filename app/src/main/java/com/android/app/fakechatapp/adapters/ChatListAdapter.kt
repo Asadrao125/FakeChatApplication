@@ -2,10 +2,13 @@ package com.android.app.fakechatapp.adapters
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.Intent
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.android.app.fakechatapp.R
+import com.android.app.fakechatapp.activities.chat_screen.ChatActivity
+import com.android.app.fakechatapp.activities.viewimage.ImageViewActivity
 import com.android.app.fakechatapp.databinding.ItemChatLeftBinding
 import com.android.app.fakechatapp.databinding.ItemChatLeftFileBinding
 import com.android.app.fakechatapp.databinding.ItemChatLeftImageBinding
@@ -143,6 +146,13 @@ class ChatListAdapter(val context: Context) :
                                 .placeholder(R.drawable.ic_user)
                                 .into(binding.imgChat)
                             tvTime.text = model.time
+                            itemView.setOnClickListener {
+                                context.startActivity(
+                                    Intent(context, ImageViewActivity::class.java)
+                                        .putExtra("image_path", imagePath)
+                                        .setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+                                )
+                            }
                         }
                     }
                 }
@@ -160,6 +170,13 @@ class ChatListAdapter(val context: Context) :
                                 .placeholder(R.drawable.ic_user)
                                 .into(binding.imgChat)
                             tvTime.text = model.time
+                            itemView.setOnClickListener {
+                                context.startActivity(
+                                    Intent(context, ImageViewActivity::class.java)
+                                        .putExtra("image_path", imagePath)
+                                        .setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+                                )
+                            }
                         }
                     }
                 }
@@ -218,5 +235,6 @@ class ChatListAdapter(val context: Context) :
         this.mList.clear()
         this.mList.addAll(mList)
         notifyDataSetChanged()
+        (context as ChatActivity).scrollToBottom()
     }
 }

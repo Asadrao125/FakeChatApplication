@@ -118,52 +118,14 @@
 
         </RelativeLayout>
 
-        <androidx.core.widget.NestedScrollView
-            android:id="@+id/nsv"
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/chatRecyclerview"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:layout_above="@id/mainLayout"
-            android:layout_below="@id/toolbar">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical">
-
-                <TextView
-                    android:id="@+id/tvDate"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center"
-                    android:layout_marginTop="10dp"
-                    android:padding="5dp"
-                    android:paddingHorizontal="5dp"
-                    android:text="March 25. 2024"
-                    android:textColor="@color/gray"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:id="@+id/tvEncryption"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center"
-                    android:layout_marginHorizontal="20dp"
-                    android:gravity="center"
-                    android:padding="5dp"
-                    android:paddingHorizontal="5dp"
-                    android:text="Encryption text here"
-                    android:textColor="@color/yellow" />
-
-                <androidx.recyclerview.widget.RecyclerView
-                    android:id="@+id/chatRecyclerview"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    tools:itemCount="3"
-                    tools:listitem="@layout/item_chat_left" />
-
-            </LinearLayout>
-
-        </androidx.core.widget.NestedScrollView>
+            android:layout_below="@id/toolbar"
+            tools:itemCount="3"
+            tools:listitem="@layout/item_chat_left" />
 
         <RelativeLayout
             android:id="@+id/mainLayout"
@@ -179,23 +141,29 @@
             <RelativeLayout
                 android:id="@+id/messageLayout"
                 android:layout_width="match_parent"
-                android:layout_height="55dp"
+                android:layout_height="45dp"
                 android:layout_centerVertical="true"
                 android:layout_marginEnd="5dp"
                 android:layout_toStartOf="@id/SendLayout"
                 android:background="@drawable/search_bg">
 
+                <ImageView
+                    android:id="@+id/imgEmoji"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_centerVertical="true"
+                    android:layout_marginStart="5dp"
+                    android:src="@drawable/ic_emoji"
+                    app:tint="@color/gray" />
+
                 <EditText
                     android:id="@+id/etMessage"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_alignParentStart="true"
                     android:layout_centerVertical="true"
                     android:layout_toStartOf="@id/imgAttachment"
+                    android:layout_toEndOf="@id/imgEmoji"
                     android:background="@null"
-                    android:drawableStart="@drawable/ic_emoji"
-                    android:drawablePadding="5dp"
-                    android:drawableTint="@color/gray"
                     android:hint="Message"
                     android:inputType="textCapSentences|textMultiLine"
                     android:maxLines="3"

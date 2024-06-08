@@ -2,7 +2,6 @@ package com.android.app.fakechatapp.adapters
 
 import android.content.Context
 import android.content.Intent
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.View.GONE
@@ -13,6 +12,7 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.android.app.fakechatapp.R
 import com.android.app.fakechatapp.activities.chat_screen.ChatActivity
+import com.android.app.fakechatapp.activities.viewimage.ImageViewActivity
 import com.android.app.fakechatapp.database.Database
 import com.android.app.fakechatapp.models.User
 import com.squareup.picasso.Picasso
@@ -35,7 +35,7 @@ class UserAdapter(private var context: Context) :
     }
 
     override fun onBindViewHolder(holder: MyViewHolder, position: Int) {
-        val userModel: User = mList?.get(position)!!
+        val userModel: User = filteredList?.get(position)!!
         holder.tvUserName.text = userModel.name
         holder.tvLastMessage.text = userModel.lastMessage
         holder.tvLastMessageTime.text = userModel.lastMsgTime
@@ -54,6 +54,14 @@ class UserAdapter(private var context: Context) :
             intent.putExtra("enc_text", userModel.encryptedText)
             context.startActivity(intent)
         }
+
+        holder.profilePic.setOnClickListener {
+            context.startActivity(
+                Intent(context, ImageViewActivity::class.java)
+                    .putExtra("image_path", userModel.profileImage)
+                    .setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+            )
+        }
     }
 
     fun submitList(newData: ArrayList<User?>?) {
@@ -63,7 +71,7 @@ class UserAdapter(private var context: Context) :
     }
 
     override fun getItemCount(): Int {
-        return mList!!.size
+        return filteredList?.size ?: 0
     }
 
     class MyViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
@@ -86,11 +94,8 @@ class UserAdapter(private var context: Context) :
         filteredList = if (query.isEmpty()) {
             mList
         } else {
-            mList?.filter { it?.name?.contains(query, ignoreCase = true) == true } as ArrayList<User?>?
+            mList?.filter { it?.name?.contains(query, ignoreCase = true) == true }?.toCollection(ArrayList())
         }
-        Log.d("query_result:1 ", "filter: $query")
-        Log.d("query_result:2 ", "filter: ${mList.toString()}")
-        Log.d("query_result:3 ", "filter: ${filteredList.toString()}")
         notifyDataSetChanged()
     }
 }

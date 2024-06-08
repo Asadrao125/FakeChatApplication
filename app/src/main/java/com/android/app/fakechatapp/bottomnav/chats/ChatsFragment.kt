@@ -17,9 +17,11 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.android.app.fakechatapp.MainActivity
 import com.android.app.fakechatapp.R
 import com.android.app.fakechatapp.adapters.UserAdapter
 import com.android.app.fakechatapp.activities.archive.ArchiveActivity
+import com.android.app.fakechatapp.activities.chat_screen.ChatActivity
 import com.android.app.fakechatapp.database.Database
 import com.android.app.fakechatapp.databinding.FragmentChatsBinding
 import com.android.app.fakechatapp.models.User
@@ -59,6 +61,7 @@ class ChatsFragment : Fragment() {
         }
 
         binding.edtSearch.setOnTouchListener { _, event ->
+            (context as MainActivity).hideBottomNav(isShowBottom = false)
             when (event.action) {
                 MotionEvent.ACTION_DOWN, MotionEvent.ACTION_UP -> {
                     binding.searchIcon.setImageResource(R.drawable.ic_back)
@@ -93,6 +96,7 @@ class ChatsFragment : Fragment() {
             binding.edtSearch.clearFocus()
             binding.edtSearch.setText("")
             binding.searchIcon.setImageResource(R.drawable.ic_search)
+            (context as MainActivity).hideBottomNav(isShowBottom = true)
         }
     }
 

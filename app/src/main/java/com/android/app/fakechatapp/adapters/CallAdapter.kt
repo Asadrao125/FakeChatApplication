@@ -14,6 +14,7 @@ import com.android.app.fakechatapp.R
 import com.android.app.fakechatapp.activities.call.audio.CallActivity
 import com.android.app.fakechatapp.activities.call.details.CallDetailsActivity
 import com.android.app.fakechatapp.activities.call.video.VideoCallActivity
+import com.android.app.fakechatapp.activities.viewimage.ImageViewActivity
 import com.android.app.fakechatapp.database.Database
 import com.android.app.fakechatapp.models.Call
 import com.squareup.picasso.Picasso
@@ -83,6 +84,14 @@ class CallAdapter(private var context: Context) :
             intent.putExtra("user_id", callModel.callReceiverId)
             intent.putExtra("user_name", callModel.userName)
             context.startActivity(intent)
+        }
+
+        holder.profilePic.setOnClickListener {
+            context.startActivity(
+                Intent(context, ImageViewActivity::class.java)
+                    .putExtra("image_path", callModel.callProfileImage)
+                    .setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+            )
         }
 
         Picasso.get().load(File(callModel.callProfileImage)).placeholder(R.drawable.ic_user)
