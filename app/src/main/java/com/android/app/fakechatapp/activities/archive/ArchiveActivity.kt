@@ -5,6 +5,7 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
+import android.view.View.GONE
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
@@ -64,6 +65,7 @@ class ArchiveActivity : AppCompatActivity() {
             withContext(Dispatchers.Main) {
                 if (users != null)
                     userAdapter.submitList(users)
+                else binding.usersRv.visibility = GONE
 
                 binding.usersRv.addOnItemTouchListener(
                     RecyclerItemClickListener(
@@ -105,6 +107,7 @@ class ArchiveActivity : AppCompatActivity() {
         }
         delete.setOnClickListener {
             database.deleteChat(selectedUser.userId)
+            database.deleteUser(selectedUser.userId)
             getDataAndSetAdapter()
             dialog.dismiss()
         }

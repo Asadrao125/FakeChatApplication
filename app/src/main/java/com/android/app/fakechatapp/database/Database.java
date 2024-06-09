@@ -270,6 +270,13 @@ public class Database {
         close();
     }
 
+    public void deleteUser(int userId) {
+        open();
+        String query = "DELETE FROM Users WHERE userId = '" + userId + "'";
+        sqLiteDatabase.execSQL(query);
+        close();
+    }
+
     /*
     CREATE TABLE "Chat" (
 	"messageId"	INTEGER PRIMARY KEY AUTOINCREMENT,

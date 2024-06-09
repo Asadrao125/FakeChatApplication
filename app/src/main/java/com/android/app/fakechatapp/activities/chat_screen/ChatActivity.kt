@@ -14,18 +14,23 @@ import android.text.TextWatcher
 import android.util.DisplayMetrics
 import android.util.Log
 import android.view.Gravity
+import android.view.LayoutInflater
 import android.view.View
 import android.view.View.GONE
 import android.view.View.VISIBLE
 import android.view.Window
 import android.view.WindowManager
 import android.widget.LinearLayout
+import android.widget.PopupWindow
+import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.databinding.DataBindingUtil
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.android.app.fakechatapp.R
 import com.android.app.fakechatapp.activities.call.audio.CallActivity
 import com.android.app.fakechatapp.activities.call.video.VideoCallActivity
+import com.android.app.fakechatapp.activities.profile.ProfileActivity
 import com.android.app.fakechatapp.activities.userprofile.UserProfileActivity
 import com.android.app.fakechatapp.activities.viewimage.ImageViewActivity
 import com.android.app.fakechatapp.adapters.ChatListAdapter
@@ -208,6 +213,10 @@ class ChatActivity : AppCompatActivity() {
         }
 
         setChatsData()
+
+        binding.imgMenu.setOnClickListener {
+            showChatMenuDialog()
+        }
     }
 
     private fun startVideoCall() {
@@ -237,11 +246,25 @@ class ChatActivity : AppCompatActivity() {
         val chats = database.getUserChats(intent.getIntExtra("user_id", 0))
         if (chats != null) {
             adapter.setData(chats)
-        }
+        } else binding.chatRecyclerview.visibility = GONE
     }
 
     fun scrollToBottom() {
         binding.chatRecyclerview.scrollToPosition(adapter.itemCount - 1)
+    }
+
+    private fun showChatMenuDialog() {
+        val inflater = getSystemService(LAYOUT_INFLATER_SERVICE) as LayoutInflater
+        val view = inflater.inflate(R.layout.inner_chat_menu_dialog_layout, null)
+        val popupWindow = PopupWindow(view, 500, ConstraintLayout.LayoutParams.WRAP_CONTENT, true)
+        popupWindow.showAsDropDown(binding.imgMenu, 0, 0)
+        val tvClearChat = view.findViewById<TextView>(R.id.tvClearChat)
+
+        tvClearChat.setOnClickListener {
+            popupWindow.dismiss()
+            database.deleteChat(user.userId)
+            setChatsData()
+        }
     }
 
     @Deprecated("Deprecated in Java")
@@ -279,14 +302,14 @@ class ChatActivity : AppCompatActivity() {
                     e.printStackTrace()
                 }
             } else if (requestCode == CHAT_VIDEO_REQ_CODE) {
-                /*val selectedImageUri = data?.data
+                val selectedImageUri = data?.data
                 val selectedVideoPath = getPath(selectedImageUri)
                 if (selectedVideoPath != null) {
                     CoroutineScope(Dispatchers.IO).launch {
                         saveChatVideoToCache(File(selectedVideoPath))
                     }
                     saveChatVideoMessage()
-                }*/
+                }
             } else if (requestCode == FILE_REQ_CODE) {
                 /*val selectedFileUri = data?.data
                 val selectedFilePath = getPathFromUri(selectedFileUri!!)
@@ -332,10 +355,10 @@ class ChatActivity : AppCompatActivity() {
                 time = chatViewModel.getCurrentTime(),
                 senderId = user.userId,
                 receiverId = user.userId,
-                viewType = 7,
+                viewType = if (isMyMessage) 7 else 8,
                 date = chatViewModel.getCurrentDate(),
                 imagePath = imagePath,
-                filePath = ""
+                filePath = videoPath
             )
         )
         database.updateLastMessageAndTime(

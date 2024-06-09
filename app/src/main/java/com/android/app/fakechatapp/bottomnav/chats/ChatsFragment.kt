@@ -174,6 +174,7 @@ class ChatsFragment : Fragment() {
         }
         delete.setOnClickListener {
             database.deleteChat(selectedUser.userId)
+            database.deleteUser(selectedUser.userId)
             getDataAndSetAdapter()
             dialog.dismiss()
         }

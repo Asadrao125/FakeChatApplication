@@ -9,8 +9,6 @@
     <RelativeLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="end"
-        android:gravity="end"
         android:paddingTop="3dp"
         android:paddingBottom="3dp">
 
@@ -18,36 +16,28 @@
             android:id="@+id/parentLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_alignParentEnd="true"
-            android:gravity="end"
             android:orientation="horizontal"
             android:weightSum="10">
 
             <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_weight="6" />
-
-            <LinearLayout
-                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_weight="4"
-                android:orientation="vertical"
-                android:paddingEnd="4dp">
+                android:orientation="horizontal"
+                android:paddingStart="4dp">
 
-                <androidx.constraintlayout.widget.ConstraintLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:background="@drawable/whats_right"
-                    android:paddingStart="5dp"
-                    android:paddingTop="5dp"
-                    android:paddingEnd="10dp"
-                    android:paddingBottom="5dp">
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="250dp"
+                    android:background="@drawable/whats_left"
+                    android:orientation="vertical"
+                    android:padding="5dp">
 
                     <androidx.cardview.widget.CardView
                         android:id="@+id/cv"
                         android:layout_width="wrap_content"
-                        android:layout_height="200dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="5dp"
                         app:cardCornerRadius="8dp"
                         app:layout_constraintBottom_toBottomOf="parent"
                         app:layout_constraintEnd_toEndOf="parent"
@@ -62,8 +52,21 @@
                                 android:id="@+id/imgChat"
                                 android:layout_width="match_parent"
                                 android:layout_height="match_parent"
-                                android:scaleType="centerCrop"
+                                android:layout_alignParentStart="true"
+                                android:layout_alignParentTop="true"
+                                android:layout_alignParentEnd="true"
+                                android:layout_alignParentBottom="true"
+                                android:scaleType="fitXY"
                                 android:src="@drawable/ic_user" />
+
+                            <ImageView
+                                android:id="@+id/imgPlayVideo"
+                                android:layout_width="50dp"
+                                android:layout_height="50dp"
+                                android:layout_centerInParent="true"
+                                android:background="@drawable/transparent_circle"
+                                android:src="@drawable/ic_play_video"
+                                app:tint="@color/white" />
 
                             <TextView
                                 android:id="@+id/tvTime"
@@ -71,9 +74,9 @@
                                 android:layout_height="wrap_content"
                                 android:layout_alignParentEnd="true"
                                 android:layout_alignParentBottom="true"
-                                android:background="@color/transparent"
+                                android:background="#66000000"
                                 android:padding="2dp"
-                                android:text="05:00 pm"
+                                android:text="5:00 PM"
                                 android:textColor="@color/white"
                                 android:textSize="12sp" />
 
@@ -81,9 +84,14 @@
 
                     </androidx.cardview.widget.CardView>
 
-                </androidx.constraintlayout.widget.ConstraintLayout>
+                </LinearLayout>
 
             </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="6" />
 
         </LinearLayout>
 

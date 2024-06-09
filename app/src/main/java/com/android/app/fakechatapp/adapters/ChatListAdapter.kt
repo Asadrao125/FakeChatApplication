@@ -3,20 +3,26 @@ package com.android.app.fakechatapp.adapters
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.recyclerview.widget.RecyclerView
 import com.android.app.fakechatapp.R
+import com.android.app.fakechatapp.activities.call.videoplay.VideoPlayActivity
 import com.android.app.fakechatapp.activities.chat_screen.ChatActivity
 import com.android.app.fakechatapp.activities.viewimage.ImageViewActivity
 import com.android.app.fakechatapp.databinding.ItemChatLeftBinding
 import com.android.app.fakechatapp.databinding.ItemChatLeftFileBinding
 import com.android.app.fakechatapp.databinding.ItemChatLeftImageBinding
+import com.android.app.fakechatapp.databinding.ItemChatLeftVideoBinding
 import com.android.app.fakechatapp.databinding.ItemChatRightBinding
 import com.android.app.fakechatapp.databinding.ItemChatRightFileBinding
 import com.android.app.fakechatapp.databinding.ItemChatRightImageBinding
+import com.android.app.fakechatapp.databinding.ItemChatRightVideoBinding
 import com.android.app.fakechatapp.models.Chat
 import com.bumptech.glide.Glide
+import java.io.File
 
 const val MSG_TYPE_LEFT: Int = 1
 const val MSG_TYPE_RIGHT: Int = 2
@@ -24,6 +30,8 @@ const val MSG_TYPE_LEFT_IMAGE: Int = 3
 const val MSG_TYPE_RIGHT_IMAGE: Int = 4
 const val MSG_TYPE_LEFT_FILE: Int = 5
 const val MSG_TYPE_RIGHT_FILE: Int = 6
+const val MSG_TYPE_LEFT_VIDEO: Int = 7
+const val MSG_TYPE_RIGHT_VIDEO: Int = 8
 
 class ChatListAdapter(val context: Context) :
     RecyclerView.Adapter<RecyclerView.ViewHolder>() {
@@ -77,6 +85,33 @@ class ChatListAdapter(val context: Context) :
                 LeftFileViewHolder(binding)
             }
 
+            MSG_TYPE_RIGHT_FILE -> {
+                val binding = ItemChatRightFileBinding.inflate(
+                    LayoutInflater.from(parent.context),
+                    parent,
+                    false
+                )
+                RightFileViewHolder(binding)
+            }
+
+            MSG_TYPE_LEFT_VIDEO -> {
+                val binding = ItemChatLeftVideoBinding.inflate(
+                    LayoutInflater.from(parent.context),
+                    parent,
+                    false
+                )
+                LeftVideoViewHolder(binding)
+            }
+
+            MSG_TYPE_RIGHT_VIDEO -> {
+                val binding = ItemChatRightVideoBinding.inflate(
+                    LayoutInflater.from(parent.context),
+                    parent,
+                    false
+                )
+                RightVideoViewHolder(binding)
+            }
+
             else -> {
                 val binding = ItemChatRightFileBinding.inflate(
                     LayoutInflater.from(parent.context),
@@ -96,7 +131,10 @@ class ChatListAdapter(val context: Context) :
                 3 -> MSG_TYPE_LEFT_IMAGE
                 4 -> MSG_TYPE_RIGHT_IMAGE
                 5 -> MSG_TYPE_LEFT_FILE
-                else -> MSG_TYPE_RIGHT_FILE
+                6 -> MSG_TYPE_RIGHT_FILE
+                7 -> MSG_TYPE_RIGHT_VIDEO
+                8 -> MSG_TYPE_LEFT_VIDEO
+                else -> MSG_TYPE_RIGHT_VIDEO
             }
         }
         return 0
@@ -205,6 +243,54 @@ class ChatListAdapter(val context: Context) :
                     }
                 }
             }
+
+            MSG_TYPE_RIGHT_VIDEO -> {
+                val right = holder as RightVideoViewHolder
+                with(right) {
+                    with(mList[position]) {
+                        val model = this
+                        binding.apply {
+                            tvTime.text = model.time
+                            Glide.with(context)
+                                .load(model.filePath)
+                                .centerCrop()
+                                .placeholder(R.drawable.ic_user)
+                                .into(binding.imgChat)
+                            binding.imgPlayVideo.setOnClickListener {
+                                context.startActivity(
+                                    Intent(context, VideoPlayActivity::class.java)
+                                        .putExtra("video_path", filePath)
+                                        .setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+
+            MSG_TYPE_LEFT_VIDEO -> {
+                val right = holder as LeftVideoViewHolder
+                with(right) {
+                    with(mList[position]) {
+                        val model = this
+                        binding.apply {
+                            tvTime.text = model.time
+                            Glide.with(context)
+                                .load(model.filePath)
+                                .centerCrop()
+                                .placeholder(R.drawable.ic_user)
+                                .into(binding.imgChat)
+                            binding.imgPlayVideo.setOnClickListener {
+                                context.startActivity(
+                                    Intent(context, VideoPlayActivity::class.java)
+                                        .putExtra("video_path", filePath)
+                                        .setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+                                )
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -224,6 +310,12 @@ class ChatListAdapter(val context: Context) :
         RecyclerView.ViewHolder(binding.root)
 
     inner class LeftFileViewHolder(val binding: ItemChatLeftFileBinding) :
+        RecyclerView.ViewHolder(binding.root)
+
+    inner class RightVideoViewHolder(val binding: ItemChatRightVideoBinding) :
+        RecyclerView.ViewHolder(binding.root)
+
+    inner class LeftVideoViewHolder(val binding: ItemChatLeftVideoBinding) :
         RecyclerView.ViewHolder(binding.root)
 
     override fun getItemCount(): Int {
