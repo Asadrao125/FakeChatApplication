@@ -506,23 +506,11 @@ public class Database {
 	"date"	TEXT,
 	"time"	TEXT,
 	"isSeen"	INTEGER,
-	"statusUploaderProfile"	BLOB,
-	"statusColor"	INTEGER,
-	"isMute"	INTEGER);
-    */
-
-    /*
-    * CREATE TABLE "Statuses" (
-	"statusId"	INTEGER PRIMARY KEY AUTOINCREMENT,
-	"statusUploaderId"	INTEGER,
-	"userName"	TEXT,
-	"statusMessage"	TEXT,
-	"date"	TEXT,
-	"time"	TEXT,
-	"isSeen"	INTEGER,
 	"statusUploaderProfile"	TEXT,
 	"statusColor"	INTEGER,
-	"isMute"	INTEGER);
+	"isMute"	INTEGER,
+	"statusType"	INTEGER,
+	"imagePath"	TEXT);
     */
 
     public long insertStatus(Status status) {
@@ -539,6 +527,8 @@ public class Database {
             cv.put("statusUploaderProfile", status.getStatusUploaderProfile());
             cv.put("statusColor", status.getStatusColor());
             cv.put("isMute", status.isMute());
+            cv.put("statusType", status.getStatusType());
+            cv.put("imagePath", status.getImagePath());
             rowId = sqLiteDatabase.insert("Statuses", null, cv);
             close();
         } catch (SQLiteException e) {
@@ -574,7 +564,9 @@ public class Database {
                 @SuppressLint("Range") String statusUploaderProfile = cursor.getString(cursor.getColumnIndex("statusUploaderProfile"));
                 @SuppressLint("Range") int statusColor = cursor.getInt(cursor.getColumnIndex("statusColor"));
                 @SuppressLint("Range") int isMute = cursor.getInt(cursor.getColumnIndex("isMute"));
-                temp = new Status(statusId, statusUploaderId, userName, statusMessage, date, time, isSeen, statusUploaderProfile, statusColor, isMute);
+                @SuppressLint("Range") int statusType = cursor.getInt(cursor.getColumnIndex("statusType"));
+                @SuppressLint("Range") String imagePath = cursor.getString(cursor.getColumnIndex("imagePath"));
+                temp = new Status(statusId, statusUploaderId, userName, statusMessage, date, time, isSeen, statusUploaderProfile, statusColor, isMute, statusType, imagePath);
                 statuses.add(temp);
                 temp = null;
             }
@@ -605,7 +597,9 @@ public class Database {
                 @SuppressLint("Range") String statusUploaderProfile = cursor.getString(cursor.getColumnIndex("statusUploaderProfile"));
                 @SuppressLint("Range") int statusColor = cursor.getInt(cursor.getColumnIndex("statusColor"));
                 @SuppressLint("Range") int isMute = cursor.getInt(cursor.getColumnIndex("isMute"));
-                temp = new Status(statusId, statusUploaderId, userName, statusMessage, date, time, isSeen, statusUploaderProfile, statusColor, isMute);
+                @SuppressLint("Range") int statusType = cursor.getInt(cursor.getColumnIndex("isMute"));
+                @SuppressLint("Range") String imagePath = cursor.getString(cursor.getColumnIndex("imagePath"));
+                temp = new Status(statusId, statusUploaderId, userName, statusMessage, date, time, isSeen, statusUploaderProfile, statusColor, isMute, statusType, imagePath);
                 statuses.add(temp);
                 temp = null;
             }

@@ -6,11 +6,12 @@
 
     </data>
 
-    <androidx.constraintlayout.widget.ConstraintLayout
+    <LinearLayout
         android:id="@+id/parentLayout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="@color/whatsapp_green"
+        android:orientation="vertical"
         tools:context=".activities.viewstatus.ViewStatusActivity">
 
         <TextView
@@ -23,6 +24,13 @@
             android:textColor="@color/white"
             android:textSize="20sp" />
 
-    </androidx.constraintlayout.widget.ConstraintLayout>
+        <ImageView
+            android:id="@+id/statusImage"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:src="@drawable/ic_user"
+            android:visibility="gone" />
+
+    </LinearLayout>
 
 </layout>

@@ -19,24 +19,24 @@
 
         <RelativeLayout
             android:id="@+id/statusLayout"
-            android:layout_width="50dp"
-            android:layout_height="50dp"
+            android:layout_width="53dp"
+            android:layout_height="53dp"
             android:background="@drawable/grey_circle"
             android:gravity="center"
             android:orientation="vertical">
 
             <de.hdodenhof.circleimageview.CircleImageView
-                android:id="@+id/profilePic"
-                android:layout_width="45dp"
-                android:layout_height="45dp"
+                android:id="@+id/statusImage"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
                 android:layout_centerInParent="true"
                 android:src="@drawable/ic_user"
                 android:visibility="gone" />
 
             <TextView
                 android:id="@+id/status"
-                android:layout_width="45dp"
-                android:layout_height="45dp"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
                 android:layout_centerInParent="true"
                 android:background="@drawable/status_bg_circle"
                 android:ellipsize="end"

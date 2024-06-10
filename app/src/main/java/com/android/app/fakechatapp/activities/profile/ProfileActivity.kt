@@ -12,6 +12,7 @@ import android.widget.Toast
 import androidx.databinding.DataBindingUtil
 import com.android.app.fakechatapp.R
 import com.android.app.fakechatapp.activities.about.AboutActivity
+import com.android.app.fakechatapp.activities.viewimage.ImageViewActivity
 import com.android.app.fakechatapp.database.Database
 import com.android.app.fakechatapp.databinding.ActivityProfileBinding
 import com.android.app.fakechatapp.utils.Constants
@@ -55,8 +56,13 @@ class ProfileActivity : AppCompatActivity() {
         }
 
         binding.profilePic.setOnClickListener {
-            if (sharedPref.read(Constants.USER_PROFILE_PIC_PATH, "")?.isNotEmpty() == true) {
-                // Navigate to image view screen
+            val profilePath = sharedPref.read(Constants.USER_PROFILE_PIC_PATH, "")
+            if (profilePath?.isNotEmpty() == true) {
+                startActivity(
+                    Intent(this, ImageViewActivity::class.java)
+                        .putExtra("image_path", profilePath)
+                        .setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+                )
             } else {
                 Toast.makeText(applicationContext, "No profile photo", Toast.LENGTH_SHORT).show()
             }

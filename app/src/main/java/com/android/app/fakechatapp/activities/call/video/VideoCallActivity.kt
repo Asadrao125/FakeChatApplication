@@ -16,7 +16,6 @@ import androidx.databinding.DataBindingUtil
 import com.android.app.fakechatapp.R
 import com.android.app.fakechatapp.database.Database
 import com.android.app.fakechatapp.databinding.ActivityVideoCallBinding
-import com.android.app.fakechatapp.models.User
 import com.android.app.fakechatapp.utils.Constants
 import com.android.app.fakechatapp.utils.SharedPref
 import com.squareup.picasso.Picasso
@@ -27,7 +26,9 @@ class VideoCallActivity : AppCompatActivity() {
     private lateinit var viewModel: VideoCallActivityViewModel
     private lateinit var database: Database
     private var callId: Long = 0
-    private lateinit var user: User
+    private var userId: Int = 0
+    private var userName: String = ""
+    private var profilePath: String = ""
     private lateinit var mediaController: MediaController
     private lateinit var sharedPref: SharedPref
 
@@ -57,7 +58,8 @@ class VideoCallActivity : AppCompatActivity() {
         binding.videoView.setMediaController(null)
 
         callId = intent.getLongExtra("call_id", 0)
-        user = database.getSingleUser(intent.getIntExtra("user_id", 0))
+        userId = intent.getIntExtra("user_id", 0)
+        profilePath = intent.getStringExtra("profile_path") ?: ""
 
         handler = Handler()
 
@@ -70,8 +72,8 @@ class VideoCallActivity : AppCompatActivity() {
         database.updateCallTime(viewModel.getCurrentTime(), callId)
 
         startTimerWithDelay()
-        binding.tUserName.text = user.name
-        Picasso.get().load(File(user.profileImage)).placeholder(R.drawable.ic_user)
+        binding.tUserName.text = userName
+        Picasso.get().load(File(profilePath)).placeholder(R.drawable.ic_user)
             .into(binding.profilePic)
 
         setBottomListeners()

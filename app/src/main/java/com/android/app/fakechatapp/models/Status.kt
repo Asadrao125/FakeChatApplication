@@ -10,5 +10,7 @@ data class Status(
     val isSeen: Int,
     val statusUploaderProfile: String,
     val statusColor: Int,
-    val isMute: Int
+    val isMute: Int,
+    val statusType: Int, // 1 Text, 2 Image
+    val imagePath: String
 )

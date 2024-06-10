@@ -1,6 +1,5 @@
 package com.android.app.fakechatapp.activities.chat_screen
 
-import android.app.AlertDialog
 import android.app.Dialog
 import android.content.ContextWrapper
 import android.content.Intent
@@ -15,7 +14,6 @@ import android.util.DisplayMetrics
 import android.util.Log
 import android.view.Gravity
 import android.view.LayoutInflater
-import android.view.View
 import android.view.View.GONE
 import android.view.View.VISIBLE
 import android.view.Window
@@ -30,9 +28,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.android.app.fakechatapp.R
 import com.android.app.fakechatapp.activities.call.audio.CallActivity
 import com.android.app.fakechatapp.activities.call.video.VideoCallActivity
-import com.android.app.fakechatapp.activities.profile.ProfileActivity
 import com.android.app.fakechatapp.activities.userprofile.UserProfileActivity
-import com.android.app.fakechatapp.activities.viewimage.ImageViewActivity
 import com.android.app.fakechatapp.adapters.ChatListAdapter
 import com.android.app.fakechatapp.database.Database
 import com.android.app.fakechatapp.databinding.ActivityChatBinding
@@ -45,7 +41,6 @@ import com.android.app.fakechatapp.utils.Constants.Companion.CHAT_VIDEO_REQ_CODE
 import com.android.app.fakechatapp.utils.Constants.Companion.FILE_REQ_CODE
 import com.android.app.fakechatapp.utils.Constants.Companion.IMAGE_REQ_CODE
 import com.android.app.fakechatapp.utils.Constants.Companion.VIDEO_REQ_CODE
-import com.android.app.fakechatapp.utils.RecyclerItemClickListener
 import com.android.app.fakechatapp.utils.SharedPref
 import com.squareup.picasso.Picasso
 import kotlinx.coroutines.CoroutineScope
@@ -68,6 +63,7 @@ class ChatActivity : AppCompatActivity() {
     private var videoPath: String = ""
     private var imagePath = ""
     private var filePath = ""
+    private var isMyMessage: Boolean = true
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -183,6 +179,7 @@ class ChatActivity : AppCompatActivity() {
                     .putExtra("user_name", user.name)
                     .putExtra("call_id", callId)
                     .putExtra("user_id", user.userId)
+                    .putExtra("profile_path", user.profileImage)
             )
         }
 
@@ -238,6 +235,7 @@ class ChatActivity : AppCompatActivity() {
                 .putExtra("user_name", user.name)
                 .putExtra("call_id", callId)
                 .putExtra("user_id", user.userId)
+                .putExtra("profile_path", user.profileImage)
         )
     }
 
@@ -620,8 +618,6 @@ class ChatActivity : AppCompatActivity() {
         }
         dialog.show()
     }
-
-    private var isMyMessage: Boolean = true
 
     private fun showSendReceiveDialog() {
         val dialog = Dialog(this)

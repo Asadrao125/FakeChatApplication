@@ -14,6 +14,7 @@ import com.android.app.fakechatapp.R
 import com.android.app.fakechatapp.database.Database
 import com.android.app.fakechatapp.models.Status
 import com.android.app.fakechatapp.activities.viewstatus.ViewStatusActivity
+import com.bumptech.glide.Glide
 import com.squareup.picasso.Picasso
 import java.io.File
 
@@ -33,15 +34,21 @@ class StatusMutedAdapter(private var context: Context) :
     override fun onBindViewHolder(holder: MyViewHolder, position: Int) {
         val status: Status = mList[position]
         holder.tvUserName.text = status.userName
-        holder.status.text = status.statusMessage
 
-        if (status.isSeen == 1) holder.statusLayout.background =
-            ContextCompat.getDrawable(context, R.drawable.grey_circle)
-        else holder.statusLayout.background =
-            ContextCompat.getDrawable(context, R.drawable.green_circle)
+        if (status.statusType == 1) {
+            holder.status.text = status.statusMessage
+            holder.statusImage.visibility = View.GONE
+            holder.status.visibility = View.VISIBLE
+        } else if (status.statusType == 2) {
+            holder.status.visibility = View.GONE
+            holder.statusImage.visibility = View.VISIBLE
 
-        Picasso.get().load(File(status.statusUploaderProfile)).placeholder(R.drawable.ic_user)
-            .into(holder.profilePic)
+            Glide.with(context)
+                .load(status.imagePath)
+                .centerCrop()
+                .placeholder(R.drawable.ic_user)
+                .into(holder.statusImage)
+        }
 
         holder.itemView.setOnClickListener {
             context.startActivity(
@@ -49,6 +56,8 @@ class StatusMutedAdapter(private var context: Context) :
                     .putExtra("status_msg", status.statusMessage)
                     .putExtra("status_color", status.statusColor)
                     .putExtra("status_id", status.statusId)
+                    .putExtra("statusType", status.statusType)
+                    .putExtra("statusImagePath", status.imagePath)
             )
         }
     }
@@ -66,13 +75,13 @@ class StatusMutedAdapter(private var context: Context) :
         var tvUserName: TextView
         var status: TextView
         var statusLayout: RelativeLayout
-        var profilePic: ImageView
+        var statusImage: ImageView
 
         init {
             status = itemView.findViewById(R.id.status)
             tvUserName = itemView.findViewById(R.id.tvUserName)
             statusLayout = itemView.findViewById(R.id.statusLayout)
-            profilePic = itemView.findViewById(R.id.profilePic)
+            statusImage = itemView.findViewById(R.id.statusImage)
         }
     }
 }

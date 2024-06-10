@@ -34,13 +34,14 @@ class StatusFragment : Fragment() {
     private lateinit var database: Database
     private lateinit var statusRecentAdapter: StatusRecentAdapter
     private lateinit var statusViewedAdapter: StatusViewedAdapter
-    private lateinit var statusMutedAdapter: StatusMutedAdapter
+
+    //private lateinit var statusMutedAdapter: StatusMutedAdapter
     private lateinit var dialog: DialogCustomProgress
     private lateinit var sharedPref: SharedPref
 
     private var isHideRecentRv = false
     private var isHideViewedRv = false
-    private var isHideMutedRv = false
+    //private var isHideMutedRv = false
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -65,10 +66,10 @@ class StatusFragment : Fragment() {
         binding.statusViewedRv.adapter = statusViewedAdapter
 
         // Recycler Muted
-        binding.statusMutedRv.layoutManager = LinearLayoutManager(context)
+        /*binding.statusMutedRv.layoutManager = LinearLayoutManager(context)
         binding.statusMutedRv.setHasFixedSize(true)
         statusMutedAdapter = StatusMutedAdapter(requireContext())
-        binding.statusMutedRv.adapter = statusMutedAdapter
+        binding.statusMutedRv.adapter = statusMutedAdapter*/
 
         binding.tvRecentUpdate.setOnClickListener {
             if (!isHideRecentRv) {
@@ -98,7 +99,7 @@ class StatusFragment : Fragment() {
             }
         }
 
-        binding.tvMutedUpdates.setOnClickListener {
+        /*binding.tvMutedUpdates.setOnClickListener {
             if (!isHideMutedRv) {
                 val drawable = ContextCompat.getDrawable(requireContext(), R.drawable.ic_arrow_down)
                 binding.tvMutedUpdates.setDrawableEnd(drawable!!)
@@ -110,7 +111,7 @@ class StatusFragment : Fragment() {
                 binding.statusMutedRv.visibility = VISIBLE
                 isHideMutedRv = false
             }
-        }
+        }*/
 
         binding.addStatusLayout.setOnClickListener {
             startActivity(Intent(requireContext(), AddStatusActivity::class.java))
@@ -134,7 +135,7 @@ class StatusFragment : Fragment() {
         }
     }
 
-    private fun getDataAndSetAdapter() {
+    fun getDataAndSetAdapter() {
         CoroutineScope(Dispatchers.IO).launch {
             val statusRecent = withContext(Dispatchers.IO) {
                 database.getAllStatus(0)
@@ -166,7 +167,7 @@ class StatusFragment : Fragment() {
                 }
             }
 
-            val statusMuted = withContext(Dispatchers.IO) {
+            /*val statusMuted = withContext(Dispatchers.IO) {
                 database.getAllMutedStatus(1)
             }
 
@@ -179,7 +180,7 @@ class StatusFragment : Fragment() {
                     binding.tvMutedUpdates.visibility = GONE
                     binding.statusMutedRv.visibility = GONE
                 }
-            }
+            }*/
         }
     }
 

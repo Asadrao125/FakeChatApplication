@@ -145,6 +145,7 @@
                         android:paddingEnd="10dp"
                         android:text="Muted updates"
                         android:textColor="@color/gray"
+                        android:visibility="gone"
                         app:drawableEndCompat="@drawable/ic_arrow_down"
                         app:drawableTint="@color/gray" />
 
@@ -153,6 +154,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:layout_marginTop="5dp"
+                        android:visibility="gone"
                         tools:itemCount="1"
                         tools:listitem="@layout/item_status_recent" />
 

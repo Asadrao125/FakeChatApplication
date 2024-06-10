@@ -34,7 +34,7 @@ class AddStatusActivity : AppCompatActivity() {
         database = Database(applicationContext)
         viewModel = AddStatusViewModel(applicationContext)
 
-        window.statusBarColor = ContextCompat.getColor(this, R.color.r_15)
+        window.statusBarColor = ContextCompat.getColor(this, R.color.whatsapp_green)
 
         color = R.color.r_15
 
@@ -51,38 +51,19 @@ class AddStatusActivity : AppCompatActivity() {
         binding.imgStatus.setOnClickListener {
             val text = binding.etStatus.text.trim().toString()
             if (text.isNotEmpty()) {
-                database.insertStatus(
-                    Status(
-                        statusId = 0,
-                        statusUploaderId = user.userId,
-                        userName = user.name,
-                        statusMessage = text,
-                        date = viewModel.getCurrentDate(),
-                        time = viewModel.getCurrentTime(),
-                        isSeen = 0,
-                        statusUploaderProfile = user.profileImage,
-                        statusColor = color,
-                        isMute = 0
-                    )
-                )
-                onBackPressed()
+                showDialog(text)
             }
         }
     }
 
-    override fun onStart() {
-        super.onStart()
-        showDialog()
-    }
-
-    private fun showDialog() {
+    private fun showDialog(text: String) {
         val dialog = Dialog(this)
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
-        dialog.setCancelable(false)
         dialog.setContentView(R.layout.dialog_users_layout)
         val userRv = dialog.findViewById<RecyclerView>(R.id.userRv)
 
         dialog.window?.setBackgroundDrawableResource(R.drawable.chatbg)
+        dialog.window?.setDimAmount(0F)
 
         val displayMetrics = DisplayMetrics()
         windowManager.defaultDisplay.getMetrics(displayMetrics)
@@ -102,16 +83,43 @@ class AddStatusActivity : AppCompatActivity() {
                     override fun onItemClick(view: View?, position: Int) {
                         val selectedUser = users[position]
                         user = selectedUser
+                        addStatus(text)
                         dialog.dismiss()
                     }
 
                     override fun onItemLongClick(view: View?, position: Int) {
                         val selectedUser = users[position]
                         user = selectedUser
+                        addStatus(text)
                         dialog.dismiss()
                     }
                 })
         )
         dialog.show()
+
+        val window = dialog.window
+        val layoutParams = window?.attributes
+        layoutParams?.width = (resources.displayMetrics.widthPixels * 0.9).toInt()
+        window?.attributes = layoutParams
+    }
+
+    private fun addStatus(text: String) {
+        database.insertStatus(
+            Status(
+                statusId = 0,
+                statusUploaderId = user.userId,
+                userName = user.name,
+                statusMessage = text,
+                date = viewModel.getCurrentDate(),
+                time = viewModel.getCurrentTime(),
+                isSeen = 0,
+                statusUploaderProfile = user.profileImage,
+                statusColor = color,
+                isMute = 0,
+                statusType = 1,
+                imagePath = ""
+            )
+        )
+        onBackPressed()
     }
 }

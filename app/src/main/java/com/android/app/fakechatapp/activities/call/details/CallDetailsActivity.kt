@@ -15,7 +15,6 @@ import com.android.app.fakechatapp.activities.viewimage.ImageViewActivity
 import com.android.app.fakechatapp.database.Database
 import com.android.app.fakechatapp.databinding.ActivityCallDetailsBinding
 import com.android.app.fakechatapp.models.Call
-import com.android.app.fakechatapp.models.User
 import com.squareup.picasso.Picasso
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -31,7 +30,8 @@ class CallDetailsActivity : AppCompatActivity() {
     private lateinit var callAdapter: CallDetailsAdapter
     private lateinit var viewModel: CallDetailsActivityViewModel
     private var userId: Int = 0
-    private lateinit var user: User
+    private var userName: String = ""
+    private var profilePath: String = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -41,6 +41,8 @@ class CallDetailsActivity : AppCompatActivity() {
         binding.lifecycleOwner = this
 
         userId = intent.getIntExtra("user_id", 0)
+        userName = intent.getStringExtra("user_name") ?: ""
+        profilePath = intent.getStringExtra("profile_path") ?: ""
         imgBack = findViewById(R.id.imgBack)
         toolbarTitle = findViewById(R.id.toolbarTitle)
         database = Database(applicationContext)
@@ -52,18 +54,16 @@ class CallDetailsActivity : AppCompatActivity() {
         callAdapter = CallDetailsAdapter(this)
         binding.callsRv.adapter = callAdapter
 
-        user = database.getSingleUser(userId)
         toolbarTitle.text = "Call Info"
-        binding.tvAbout.text = user.aboutInfo
-        binding.tvUserName.text = user.name
+        binding.tvUserName.text = userName
 
-        Picasso.get().load(File(user.profileImage)).placeholder(R.drawable.ic_user)
+        Picasso.get().load(File(profilePath)).placeholder(R.drawable.ic_user)
             .into(binding.profilePic)
 
         binding.profilePic.setOnClickListener {
             startActivity(
                 Intent(applicationContext, ImageViewActivity::class.java)
-                    .putExtra("image_path", user.profileImage)
+                    .putExtra("image_path", profilePath)
                     .setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
             )
         }
@@ -72,21 +72,22 @@ class CallDetailsActivity : AppCompatActivity() {
             val callId = database.insertCall(
                 Call(
                     callId = 0,
-                    callReceiverId = user.userId,
-                    userName = user.name,
+                    callReceiverId = userId,
+                    userName = userName,
                     callDirection = "OUTGOING",
                     date = viewModel.getCurrentDate(),
                     time = viewModel.getCurrentTime(),
                     callType = "AUDIO",
                     callDuration = "0",
-                    callProfileImage = user.profileImage
+                    callProfileImage = profilePath
                 )
             )
             startActivity(
                 Intent(this, CallActivity::class.java)
-                    .putExtra("user_name", user.name)
+                    .putExtra("user_name", userName)
                     .putExtra("call_id", callId)
-                    .putExtra("user_id", user.userId)
+                    .putExtra("user_id", userId)
+                    .putExtra("profile_path", profilePath)
             )
         }
 
@@ -94,21 +95,22 @@ class CallDetailsActivity : AppCompatActivity() {
             val callId = database.insertCall(
                 Call(
                     callId = 0,
-                    callReceiverId = user.userId,
-                    userName = user.name,
+                    callReceiverId = userId,
+                    userName = userName,
                     callDirection = "OUTGOING",
                     date = viewModel.getCurrentDate(),
                     time = viewModel.getCurrentTime(),
                     callType = "VIDEO",
                     callDuration = "0",
-                    callProfileImage = user.profileImage
+                    callProfileImage = profilePath
                 )
             )
             startActivity(
                 Intent(this, VideoCallActivity::class.java)
-                    .putExtra("user_name", user.name)
+                    .putExtra("user_name", userName)
                     .putExtra("call_id", callId)
-                    .putExtra("user_id", user.userId)
+                    .putExtra("user_id", userId)
+                    .putExtra("profile_path", profilePath)
             )
         }
     }

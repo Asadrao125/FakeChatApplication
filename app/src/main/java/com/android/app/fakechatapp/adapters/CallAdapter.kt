@@ -67,6 +67,7 @@ class CallAdapter(private var context: Context) :
                         .putExtra("user_name", callModel.userName)
                         .putExtra("call_id", callId)
                         .putExtra("user_id", callModel.callReceiverId)
+                        .putExtra("profile_path", callModel.callProfileImage)
                 )
             } else {
                 val callId = insertCall(callModel, callType = "VIDEO")
@@ -75,6 +76,7 @@ class CallAdapter(private var context: Context) :
                         .putExtra("user_name", callModel.userName)
                         .putExtra("call_id", callId)
                         .putExtra("user_id", callModel.callReceiverId)
+                        .putExtra("profile_path", callModel.callProfileImage)
                 )
             }
         }
@@ -83,6 +85,7 @@ class CallAdapter(private var context: Context) :
             val intent = Intent(context, CallDetailsActivity::class.java)
             intent.putExtra("user_id", callModel.callReceiverId)
             intent.putExtra("user_name", callModel.userName)
+            intent.putExtra("profile_path", callModel.callProfileImage)
             context.startActivity(intent)
         }
 

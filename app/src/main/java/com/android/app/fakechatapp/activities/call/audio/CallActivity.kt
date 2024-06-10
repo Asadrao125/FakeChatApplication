@@ -19,7 +19,8 @@ class CallActivity : AppCompatActivity() {
     private lateinit var database: Database
     private var userName = ""
     private var callId: Long = 0
-    private lateinit var user: User
+    private var userId: Int = 0
+    private var profilePath: String = ""
 
     // Timer
     private var secondsElapsed = 0
@@ -40,7 +41,8 @@ class CallActivity : AppCompatActivity() {
 
         userName = intent.getStringExtra("user_name")!!
         callId = intent.getLongExtra("call_id", 0)
-        user = database.getSingleUser(intent.getIntExtra("user_id", 0))
+        userId = intent.getIntExtra("user_id", 0)
+        profilePath = intent.getStringExtra("profile_path") ?: ""
 
         handler = Handler()
 
@@ -52,10 +54,10 @@ class CallActivity : AppCompatActivity() {
 
         startTimerWithDelay()
 
-        Picasso.get().load(File(user.profileImage)).placeholder(R.drawable.ic_user)
+        Picasso.get().load(File(profilePath)).placeholder(R.drawable.ic_user)
             .into(binding.profilePic)
 
-        binding.tUserName.text = user.name
+        binding.tUserName.text = userName
 
         binding.speaker.setOnClickListener {
             if (!isSpeakerSelected) {
