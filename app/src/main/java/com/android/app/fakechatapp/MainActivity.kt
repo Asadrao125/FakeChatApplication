@@ -24,7 +24,7 @@ import androidx.databinding.DataBindingUtil
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.android.app.fakechatapp.activities.adduser.AddUserActivity
-import com.android.app.fakechatapp.bottomnav.adapter.ViewPagerAdapterNew
+import com.android.app.fakechatapp.bottomnav.adapter.ViewPagerAdapter
 import com.android.app.fakechatapp.bottomnav.calls.CallsFragment
 import com.android.app.fakechatapp.bottomnav.chats.ChatsFragment
 import com.android.app.fakechatapp.bottomnav.communities.CommunityFragment
@@ -66,7 +66,7 @@ class MainActivity : AppCompatActivity() {
         database = Database(applicationContext)
         database.createDatabase()
 
-        val adapter = ViewPagerAdapterNew(supportFragmentManager, lifecycle)
+        val adapter = ViewPagerAdapter(supportFragmentManager, lifecycle)
         adapter.addFragment(ChatsFragment())
         adapter.addFragment(StatusFragment())
         adapter.addFragment(CommunityFragment())
