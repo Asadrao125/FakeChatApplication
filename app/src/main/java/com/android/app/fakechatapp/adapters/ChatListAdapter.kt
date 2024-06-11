@@ -323,10 +323,16 @@ class ChatListAdapter(val context: Context) :
     }
 
     @SuppressLint("NotifyDataSetChanged")
-    fun setData(mList: List<Chat>) {
+    fun setData(mList: ArrayList<Chat>) {
         this.mList.clear()
         this.mList.addAll(mList)
         notifyDataSetChanged()
         (context as ChatActivity).scrollToBottom()
+    }
+
+    @SuppressLint("NotifyDataSetChanged")
+    fun clearList() {
+        this.mList.clear()
+        notifyDataSetChanged()
     }
 }

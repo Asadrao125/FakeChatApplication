@@ -244,7 +244,7 @@ class ChatActivity : AppCompatActivity() {
         val chats = database.getUserChats(intent.getIntExtra("user_id", 0))
         if (chats != null) {
             adapter.setData(chats)
-        } else binding.chatRecyclerview.visibility = GONE
+        }
     }
 
     fun scrollToBottom() {
@@ -261,7 +261,7 @@ class ChatActivity : AppCompatActivity() {
         tvClearChat.setOnClickListener {
             popupWindow.dismiss()
             database.deleteChat(user.userId)
-            setChatsData()
+            adapter.clearList()
         }
     }
 
@@ -355,7 +355,7 @@ class ChatActivity : AppCompatActivity() {
                 receiverId = user.userId,
                 viewType = if (isMyMessage) 7 else 8,
                 date = chatViewModel.getCurrentDate(),
-                imagePath = imagePath,
+                imagePath = "",
                 filePath = videoPath
             )
         )
