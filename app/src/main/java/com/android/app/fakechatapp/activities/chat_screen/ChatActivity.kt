@@ -64,6 +64,7 @@ class ChatActivity : AppCompatActivity() {
     private var imagePath = ""
     private var filePath = ""
     private var isMyMessage: Boolean = true
+    //Test
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
