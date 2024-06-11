@@ -60,7 +60,8 @@
             android:exported="false" />
         <activity
             android:name=".activities.chat_screen.ChatActivity"
-            android:exported="false" />
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
         <activity
             android:name=".activities.adduser.AddUserActivity"
             android:exported="false" />

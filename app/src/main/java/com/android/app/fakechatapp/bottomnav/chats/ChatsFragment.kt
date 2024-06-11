@@ -22,16 +22,17 @@ import com.android.app.fakechatapp.R
 import com.android.app.fakechatapp.adapters.UserAdapter
 import com.android.app.fakechatapp.activities.archive.ArchiveActivity
 import com.android.app.fakechatapp.activities.chat_screen.ChatActivity
+import com.android.app.fakechatapp.activities.viewimage.ImageViewActivity
 import com.android.app.fakechatapp.database.Database
 import com.android.app.fakechatapp.databinding.FragmentChatsBinding
 import com.android.app.fakechatapp.models.User
-import com.android.app.fakechatapp.utils.RecyclerItemClickListener
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-class ChatsFragment : Fragment() {
+class ChatsFragment : Fragment(), UserAdapter.OnItemClickListener, UserAdapter.OnImageClickListener,
+    UserAdapter.OnItemLongClickListener {
     private lateinit var binding: FragmentChatsBinding
     private lateinit var chatViewModel: ChatViewModel
     private lateinit var database: Database
@@ -53,6 +54,11 @@ class ChatsFragment : Fragment() {
         binding.usersRv.layoutManager = LinearLayoutManager(context)
         binding.usersRv.setHasFixedSize(true)
         userAdapter = UserAdapter(requireContext())
+
+        userAdapter.setOnItemClickListener(this)
+        userAdapter.setOnImageClickListener(this)
+        userAdapter.setOnItemLongClickListener(this)
+
         binding.usersRv.adapter = userAdapter
         binding.edtSearch.isFocusableInTouchMode = true
 
@@ -134,23 +140,6 @@ class ChatsFragment : Fragment() {
             withContext(Dispatchers.Main) {
                 if (users != null)
                     userAdapter.submitList(users)
-
-                binding.usersRv.addOnItemTouchListener(
-                    RecyclerItemClickListener(
-                        requireContext(),
-                        binding.usersRv,
-                        object : RecyclerItemClickListener.OnItemClickListener {
-                            override fun onItemClick(view: View?, position: Int) {}
-
-                            override fun onItemLongClick(view: View?, position: Int) {
-                                val selectedUser = users[position]
-                                if (!dialogShown) {
-                                    showCustomDialog(selectedUser)
-                                    dialogShown = true
-                                }
-                            }
-                        })
-                )
                 binding.tvArchive.text = count.toString()
             }
         }
@@ -186,5 +175,30 @@ class ChatsFragment : Fragment() {
     override fun onResume() {
         super.onResume()
         setInitialSearchState()
+    }
+
+    override fun onItemClick(user: User) {
+        val intent = Intent(context, ChatActivity::class.java)
+        intent.putExtra("user_id", user.userId)
+        intent.putExtra("user_name", user.name)
+        intent.putExtra("last_seen", user.lastSeen)
+        intent.putExtra("date", user.date)
+        intent.putExtra("enc_text", user.encryptedText)
+        startActivity(intent)
+    }
+
+    override fun onImageClick(user: User) {
+        startActivity(
+            Intent(context, ImageViewActivity::class.java)
+                .putExtra("image_path", user.profileImage)
+                .setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+        )
+    }
+
+    override fun onItemLongClick(user: User) {
+        if (!dialogShown) {
+            showCustomDialog(user)
+            dialogShown = true
+        }
     }
 }

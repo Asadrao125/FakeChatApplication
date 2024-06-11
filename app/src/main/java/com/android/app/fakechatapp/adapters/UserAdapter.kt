@@ -1,28 +1,27 @@
 package com.android.app.fakechatapp.adapters
 
+import android.annotation.SuppressLint
 import android.content.Context
-import android.content.Intent
 import android.view.LayoutInflater
 import android.view.View
-import android.view.View.GONE
-import android.view.View.VISIBLE
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.android.app.fakechatapp.R
-import com.android.app.fakechatapp.activities.chat_screen.ChatActivity
-import com.android.app.fakechatapp.activities.viewimage.ImageViewActivity
 import com.android.app.fakechatapp.database.Database
 import com.android.app.fakechatapp.models.User
-import com.squareup.picasso.Picasso
-import java.io.File
+import com.bumptech.glide.Glide
 
 class UserAdapter(private var context: Context) :
     RecyclerView.Adapter<UserAdapter.MyViewHolder>() {
     private lateinit var database: Database
     private var mList: ArrayList<User?>? = arrayListOf()
     private var filteredList: ArrayList<User?>? = arrayListOf()
+
+    private var itemClickListener: OnItemClickListener? = null
+    private var imageClickListener: OnImageClickListener? = null
+    private var itemLongClickListener: OnItemLongClickListener? = null
 
     init {
         filteredList = mList
@@ -40,30 +39,26 @@ class UserAdapter(private var context: Context) :
         holder.tvLastMessage.text = userModel.lastMessage
         holder.tvLastMessageTime.text = userModel.lastMsgTime
 
-        Picasso.get().load(File(userModel.profileImage)).placeholder(R.drawable.ic_user).into(holder.profilePic)
-
-        if (userModel.isVerified == 1) holder.imgVerified.visibility = VISIBLE
-        else holder.imgVerified.visibility = GONE
+        Glide.with(context)
+            .load(userModel.profileImage)
+            .placeholder(R.drawable.ic_user)
+            .into(holder.profilePic)
 
         holder.itemView.setOnClickListener {
-            val intent = Intent(context, ChatActivity::class.java)
-            intent.putExtra("user_id", userModel.userId)
-            intent.putExtra("user_name", userModel.name)
-            intent.putExtra("last_seen", userModel.lastSeen)
-            intent.putExtra("date", userModel.date)
-            intent.putExtra("enc_text", userModel.encryptedText)
-            context.startActivity(intent)
+            itemClickListener?.onItemClick(userModel)
+        }
+
+        holder.itemView.setOnLongClickListener {
+            itemLongClickListener?.onItemLongClick(userModel)
+            true
         }
 
         holder.profilePic.setOnClickListener {
-            context.startActivity(
-                Intent(context, ImageViewActivity::class.java)
-                    .putExtra("image_path", userModel.profileImage)
-                    .setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
-            )
+            imageClickListener?.onImageClick(userModel)
         }
     }
 
+    @SuppressLint("NotifyDataSetChanged")
     fun submitList(newData: ArrayList<User?>?) {
         mList = newData
         filteredList = mList
@@ -79,23 +74,47 @@ class UserAdapter(private var context: Context) :
         var tvLastMessage: TextView
         var tvLastMessageTime: TextView
         var profilePic: ImageView
-        var imgVerified: ImageView
 
         init {
             tvUserName = itemView.findViewById(R.id.tvUserName)
             profilePic = itemView.findViewById(R.id.profilePic)
-            imgVerified = itemView.findViewById(R.id.imgVVerified)
             tvLastMessage = itemView.findViewById(R.id.tvLastMessage)
             tvLastMessageTime = itemView.findViewById(R.id.tvLastMessageTime)
         }
     }
 
+    @SuppressLint("NotifyDataSetChanged")
     fun filter(query: String) {
         filteredList = if (query.isEmpty()) {
             mList
         } else {
-            mList?.filter { it?.name?.contains(query, ignoreCase = true) == true }?.toCollection(ArrayList())
+            mList?.filter { it?.name?.contains(query, ignoreCase = true) == true }
+                ?.toCollection(ArrayList())
         }
         notifyDataSetChanged()
+    }
+
+    interface OnItemClickListener {
+        fun onItemClick(userModel: User)
+    }
+
+    interface OnImageClickListener {
+        fun onImageClick(userModel: User)
+    }
+
+    interface OnItemLongClickListener {
+        fun onItemLongClick(userModel: User)
+    }
+
+    fun setOnItemClickListener(listener: OnItemClickListener) {
+        itemClickListener = listener
+    }
+
+    fun setOnImageClickListener(listener: OnImageClickListener) {
+        imageClickListener = listener
+    }
+
+    fun setOnItemLongClickListener(listener: OnItemLongClickListener) {
+        itemLongClickListener = listener
     }
 }
