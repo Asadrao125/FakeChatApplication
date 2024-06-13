@@ -14,7 +14,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
 import com.android.app.fakechatapp.R
-import com.android.app.fakechatapp.database.Database
+import com.android.app.fakechatapp.database.MyDatabase
 import com.android.app.fakechatapp.databinding.ActivityVideoCallBinding
 import com.android.app.fakechatapp.utils.Constants
 import com.android.app.fakechatapp.utils.SharedPref
@@ -24,7 +24,7 @@ import java.io.File
 class VideoCallActivity : AppCompatActivity() {
     private lateinit var binding: ActivityVideoCallBinding
     private lateinit var viewModel: VideoCallActivityViewModel
-    private lateinit var database: Database
+    private lateinit var db: MyDatabase
     private var callId: Long = 0
     private var userId: Int = 0
     private var userName: String = ""
@@ -51,7 +51,7 @@ class VideoCallActivity : AppCompatActivity() {
         binding = DataBindingUtil.setContentView(this, R.layout.activity_video_call)
 
         viewModel = VideoCallActivityViewModel(applicationContext)
-        database = Database(applicationContext)
+        db = MyDatabase(applicationContext)
         sharedPref = SharedPref(this)
         mediaController = MediaController(applicationContext)
         binding.videoView.setMediaController(mediaController)
@@ -69,7 +69,7 @@ class VideoCallActivity : AppCompatActivity() {
             onBackPressed()
         }
 
-        database.updateCallTime(viewModel.getCurrentTime(), callId)
+        db.updateCallTime(viewModel.getCurrentTime(), callId)
 
         startTimerWithDelay()
         binding.tUserName.text = userName
@@ -199,7 +199,7 @@ class VideoCallActivity : AppCompatActivity() {
                     val minutes = (secondsElapsed % 3600) / 60
                     val seconds = secondsElapsed % 60
                     binding.tvTimer.text = String.format("%02d:%02d", minutes, seconds)
-                    database.updateCallDuration(
+                    db.updateCallDuration(
                         String.format("%02d:%02d", minutes, seconds),
                         callId
                     )

@@ -1,5 +1,6 @@
 package com.android.app.fakechatapp.adapters
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.os.Build
@@ -15,7 +16,7 @@ import com.android.app.fakechatapp.activities.call.audio.CallActivity
 import com.android.app.fakechatapp.activities.call.details.CallDetailsActivity
 import com.android.app.fakechatapp.activities.call.video.VideoCallActivity
 import com.android.app.fakechatapp.activities.viewimage.ImageViewActivity
-import com.android.app.fakechatapp.database.Database
+import com.android.app.fakechatapp.database.MyDatabase
 import com.android.app.fakechatapp.models.Call
 import com.squareup.picasso.Picasso
 import java.io.File
@@ -27,17 +28,18 @@ import java.util.Locale
 
 class CallAdapter(private var context: Context) :
     RecyclerView.Adapter<CallAdapter.MyViewHolder>() {
-    private lateinit var database: Database
-    private var mList: ArrayList<Call?>? = arrayListOf()
+    private lateinit var db: MyDatabase
+    private var mList: ArrayList<Call> = arrayListOf()
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MyViewHolder {
         val view: View = LayoutInflater.from(context).inflate(R.layout.item_call, parent, false)
-        database = Database(context)
+        db = MyDatabase(context)
         return MyViewHolder(view)
     }
 
+    @SuppressLint("SetTextI18n")
     override fun onBindViewHolder(holder: MyViewHolder, position: Int) {
-        val callModel: Call = mList?.get(position)!!
+        val callModel: Call = mList[position]
         holder.tvUserName.text = callModel.userName
         holder.tvDateTime.text = "Today, " + callModel.time
         holder.imgCallDirection.setImageDrawable(
@@ -113,7 +115,7 @@ class CallAdapter(private var context: Context) :
             callDuration = "0",
             callProfileImage = callModel.callProfileImage
         )
-        return database.insertCall(call)
+        return db.insertCall(call)
     }
 
     fun getCurrentTime(): String {
@@ -131,13 +133,14 @@ class CallAdapter(private var context: Context) :
         return LocalDate.now().format(formatter)
     }
 
-    fun submitList(newData: ArrayList<Call?>?) {
+    @SuppressLint("NotifyDataSetChanged")
+    fun submitList(newData: ArrayList<Call>) {
         mList = newData
         notifyDataSetChanged()
     }
 
     override fun getItemCount(): Int {
-        return mList!!.size
+        return mList.size
     }
 
     class MyViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {

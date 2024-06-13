@@ -20,4 +20,4 @@ const val MSG_TYPE_LEFT_IMAGE: Int = 3
 const val MSG_TYPE_RIGHT_IMAGE: Int = 4
 const val MSG_TYPE_LEFT_FILE: Int = 5
 const val MSG_TYPE_RIGHT_FILE: Int = 6
-* */
+*/

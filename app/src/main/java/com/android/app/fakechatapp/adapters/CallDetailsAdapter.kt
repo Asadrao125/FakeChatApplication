@@ -10,24 +10,21 @@ import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.android.app.fakechatapp.R
-import com.android.app.fakechatapp.database.Database
 import com.android.app.fakechatapp.models.Call
 
 class CallDetailsAdapter(private var context: Context) :
     RecyclerView.Adapter<CallDetailsAdapter.MyViewHolder>() {
-    private lateinit var database: Database
-    private var mList: ArrayList<Call?>? = arrayListOf()
+    private var mList: ArrayList<Call> = arrayListOf()
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MyViewHolder {
         val view: View =
             LayoutInflater.from(context).inflate(R.layout.item_call_details, parent, false)
-        database = Database(context)
         return MyViewHolder(view)
     }
 
     @SuppressLint("SetTextI18n")
     override fun onBindViewHolder(holder: MyViewHolder, position: Int) {
-        val callModel: Call = mList?.get(position)!!
+        val callModel: Call = mList[position]
         holder.tvCallDirection.text =
             if (callModel.callDirection == "INCOMING") "Incoming" else "Outgoing"
         holder.tvDateTime.text = callModel.time
@@ -54,13 +51,14 @@ class CallDetailsAdapter(private var context: Context) :
         }
     }
 
-    fun submitList(newData: ArrayList<Call?>?) {
+    @SuppressLint("NotifyDataSetChanged")
+    fun submitList(newData: ArrayList<Call>) {
         mList = newData
         notifyDataSetChanged()
     }
 
     override fun getItemCount(): Int {
-        return mList!!.size
+        return mList.size
     }
 
     class MyViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {

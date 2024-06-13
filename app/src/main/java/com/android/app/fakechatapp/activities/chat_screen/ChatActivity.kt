@@ -1,23 +1,26 @@
 package com.android.app.fakechatapp.activities.chat_screen
 
 import android.app.Dialog
+import android.content.Context
 import android.content.ContextWrapper
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Bundle
+import android.os.Parcelable
 import android.provider.MediaStore
+import android.provider.OpenableColumns
 import android.text.Editable
 import android.text.TextWatcher
 import android.util.DisplayMetrics
-import android.util.Log
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View.GONE
 import android.view.View.VISIBLE
 import android.view.Window
 import android.view.WindowManager
+import android.webkit.MimeTypeMap
 import android.widget.LinearLayout
 import android.widget.PopupWindow
 import android.widget.TextView
@@ -30,7 +33,7 @@ import com.android.app.fakechatapp.activities.call.audio.CallActivity
 import com.android.app.fakechatapp.activities.call.video.VideoCallActivity
 import com.android.app.fakechatapp.activities.userprofile.UserProfileActivity
 import com.android.app.fakechatapp.adapters.ChatListAdapter
-import com.android.app.fakechatapp.database.Database
+import com.android.app.fakechatapp.database.MyDatabase
 import com.android.app.fakechatapp.databinding.ActivityChatBinding
 import com.android.app.fakechatapp.models.Call
 import com.android.app.fakechatapp.models.Chat
@@ -57,13 +60,15 @@ class ChatActivity : AppCompatActivity() {
     private lateinit var binding: ActivityChatBinding
     private lateinit var chatViewModel: ChatActivityViewModel
     private lateinit var adapter: ChatListAdapter
-    private lateinit var database: Database
+    private lateinit var db: MyDatabase
     private lateinit var user: User
     private lateinit var sharedPref: SharedPref
     private var videoPath: String = ""
     private var imagePath = ""
     private var filePath = ""
     private var isMyMessage: Boolean = true
+
+    private var scrollState: Parcelable? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -72,7 +77,7 @@ class ChatActivity : AppCompatActivity() {
         chatViewModel = ChatActivityViewModel(applicationContext)
         binding.mainViewModel = chatViewModel
 
-        database = Database(applicationContext)
+        db = MyDatabase(applicationContext)
         sharedPref = SharedPref(this)
 
         binding.tvUsername.text = intent.getStringExtra("user_name")
@@ -83,7 +88,7 @@ class ChatActivity : AppCompatActivity() {
 
         binding.tvLastSeen.text = intent.getStringExtra("last_seen")
 
-        user = database.getSingleUser(intent.getIntExtra("user_id", 0))
+        user = db.getSingleUser(intent.getIntExtra("user_id", 0))
 
         Picasso.get().load(File(user.profileImage)).placeholder(R.drawable.ic_user)
             .into(binding.profilePic)
@@ -119,49 +124,52 @@ class ChatActivity : AppCompatActivity() {
         binding.imgBack.setOnClickListener { onBackPressed() }
 
         binding.imgSender.setOnClickListener {
-            database.insertChat(
-                Chat(
-                    messageId = 0,
-                    receiverName = "You",
-                    message = binding.etMessage.text.toString().trim(),
-                    time = chatViewModel.getCurrentTime(),
-                    senderId = user.userId,
-                    receiverId = user.userId,
-                    viewType = 1,
-                    date = chatViewModel.getCurrentDate()
-                )
+            val chat = Chat(
+                messageId = 0,
+                receiverName = "You",
+                message = binding.etMessage.text.toString().trim(),
+                time = chatViewModel.getCurrentTime(),
+                senderId = user.userId,
+                receiverId = user.userId,
+                viewType = 1,
+                date = chatViewModel.getCurrentDate()
             )
-            database.updateLastMessageAndTime(
+            db.insertChat(chat)
+            adapter.addChat(chat)
+
+            db.updateLastMessageAndTime(
                 user.userId,
                 binding.etMessage.text.toString().trim(),
                 chatViewModel.getCurrentTime()
             )
-            setChatsData()
+
+            binding.etMessage.setText("")
         }
 
         binding.imgReciever.setOnClickListener {
-            database.insertChat(
-                Chat(
-                    messageId = 0,
-                    receiverName = user.name,
-                    message = binding.etMessage.text.toString().trim(),
-                    time = chatViewModel.getCurrentTime(),
-                    senderId = user.userId,
-                    receiverId = user.userId,
-                    viewType = 2,
-                    date = chatViewModel.getCurrentDate()
-                )
+            val chat = Chat(
+                messageId = 0,
+                receiverName = user.name,
+                message = binding.etMessage.text.toString().trim(),
+                time = chatViewModel.getCurrentTime(),
+                senderId = user.userId,
+                receiverId = user.userId,
+                viewType = 2,
+                date = chatViewModel.getCurrentDate()
             )
-            database.updateLastMessageAndTime(
+            db.insertChat(chat)
+            adapter.addChat(chat)
+
+            db.updateLastMessageAndTime(
                 user.userId,
                 binding.etMessage.text.toString().trim(),
                 chatViewModel.getCurrentTime()
             )
-            setChatsData()
+            binding.etMessage.setText("")
         }
 
         binding.imgAudioCall.setOnClickListener {
-            val callId = database.insertCall(
+            val callId = db.insertCall(
                 Call(
                     callId = 0,
                     callReceiverId = user.userId,
@@ -217,7 +225,7 @@ class ChatActivity : AppCompatActivity() {
     }
 
     private fun startVideoCall() {
-        val callId = database.insertCall(
+        val callId = db.insertCall(
             Call(
                 callId = 0,
                 callReceiverId = user.userId,
@@ -241,10 +249,8 @@ class ChatActivity : AppCompatActivity() {
 
     private fun setChatsData() {
         binding.etMessage.setText("")
-        val chats = database.getUserChats(intent.getIntExtra("user_id", 0))
-        if (chats != null) {
-            adapter.setData(chats)
-        }
+        val chats = db.getUserChats(intent.getIntExtra("user_id", 0))
+        adapter.addChats(chats)
     }
 
     fun scrollToBottom() {
@@ -260,7 +266,7 @@ class ChatActivity : AppCompatActivity() {
 
         tvClearChat.setOnClickListener {
             popupWindow.dismiss()
-            database.deleteChat(user.userId)
+            db.deleteChat(user.userId)
             adapter.clearList()
         }
     }
@@ -309,90 +315,143 @@ class ChatActivity : AppCompatActivity() {
                     saveChatVideoMessage()
                 }
             } else if (requestCode == FILE_REQ_CODE) {
-                /*val selectedFileUri = data?.data
-                val selectedFilePath = getPathFromUri(selectedFileUri!!)
-                if (selectedFilePath != null) {
+                data?.data?.let { uri ->
                     CoroutineScope(Dispatchers.IO).launch {
-                        saveFileToCache(File(selectedFilePath))
+                        saveFileToCache(uri)
                     }
-                    saveFileMessage()
-                }*/
+                    saveFileMessage(getFileName(uri))
+                }
             }
         }
     }
 
+    private fun getFileName(uri: Uri): String {
+        var fileName: String? = null
+        val cursor = contentResolver.query(uri, null, null, null, null)
+        cursor?.use {
+            if (it.moveToFirst()) {
+                val displayNameIndex = it.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+                if (displayNameIndex != -1) {
+                    fileName = it.getString(displayNameIndex)
+                }
+            }
+        }
+        return fileName ?: "file"
+    }
+
+    private suspend fun saveFileToCache(uri: Uri): Boolean = withContext(Dispatchers.IO) {
+        val cw = ContextWrapper(applicationContext)
+        val directory = cw.getDir("chat_files", Context.MODE_PRIVATE)
+        if (!directory.exists()) {
+            directory.mkdir()
+        }
+        val childPath = "FTG_CHAT_FILE_" + System.currentTimeMillis()
+        val fileExtension = getFileExtension(uri)
+        val myPath = File(directory, "$childPath.$fileExtension")
+        filePath = "${directory.path}/$childPath.$fileExtension"
+
+        var taskCompleted = false
+        try {
+            contentResolver.openInputStream(uri)?.use { inputStream ->
+                FileOutputStream(myPath).use { outputStream ->
+                    val buffer = ByteArray(1024)
+                    var length: Int
+                    while (inputStream.read(buffer).also { length = it } > 0) {
+                        outputStream.write(buffer, 0, length)
+                    }
+                    outputStream.flush()
+                    taskCompleted = true
+                }
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            taskCompleted = false
+        }
+        return@withContext taskCompleted
+    }
+
+    private fun getFileExtension(uri: Uri): String {
+        val mimeType = contentResolver.getType(uri)
+        return MimeTypeMap.getSingleton().getExtensionFromMimeType(mimeType) ?: "pdf"
+    }
+
     private fun saveImageMessage() {
-        database.insertChat(
-            Chat(
-                messageId = 0,
-                receiverName = user.name,
-                message = "Image",
-                time = chatViewModel.getCurrentTime(),
-                senderId = user.userId,
-                receiverId = user.userId,
-                viewType = if (isMyMessage) 4 else 3,
-                date = chatViewModel.getCurrentDate(),
-                imagePath = imagePath,
-                filePath = ""
-            )
+        val chat = Chat(
+            messageId = 0,
+            receiverName = user.name,
+            message = "Image",
+            time = chatViewModel.getCurrentTime(),
+            senderId = user.userId,
+            receiverId = user.userId,
+            viewType = if (isMyMessage) 4 else 3,
+            date = chatViewModel.getCurrentDate(),
+            imagePath = imagePath,
+            filePath = ""
         )
-        database.updateLastMessageAndTime(
+        db.insertChat(chat)
+        scrollState = null
+        adapter.addChat(chat)
+
+        db.updateLastMessageAndTime(
             user.userId,
             "Image",
             chatViewModel.getCurrentTime()
         )
-        setChatsData()
     }
 
     private fun saveChatVideoMessage() {
-        database.insertChat(
-            Chat(
-                messageId = 0,
-                receiverName = user.name,
-                message = "Video",
-                time = chatViewModel.getCurrentTime(),
-                senderId = user.userId,
-                receiverId = user.userId,
-                viewType = if (isMyMessage) 7 else 8,
-                date = chatViewModel.getCurrentDate(),
-                imagePath = "",
-                filePath = videoPath
-            )
+        val chat = Chat(
+            messageId = 0,
+            receiverName = user.name,
+            message = "Video",
+            time = chatViewModel.getCurrentTime(),
+            senderId = user.userId,
+            receiverId = user.userId,
+            viewType = if (isMyMessage) 7 else 8,
+            date = chatViewModel.getCurrentDate(),
+            imagePath = "",
+            filePath = videoPath
         )
-        database.updateLastMessageAndTime(
+        db.insertChat(chat)
+        scrollState = null
+        adapter.addChat(chat)
+
+        db.updateLastMessageAndTime(
             user.userId,
             "Video",
             chatViewModel.getCurrentTime()
         )
-        setChatsData()
     }
 
-    private fun saveFileMessage() {
-        database.insertChat(
-            Chat(
-                messageId = 0,
-                receiverName = user.name,
-                message = "File",
-                time = chatViewModel.getCurrentTime(),
-                senderId = user.userId,
-                receiverId = user.userId,
-                viewType = 6,
-                date = chatViewModel.getCurrentDate(),
-                imagePath = "",
-                filePath = filePath
-            )
+    private fun saveFileMessage(fileName: String) {
+        val chat = Chat(
+            messageId = 0,
+            receiverName = user.name,
+            message = fileName,
+            time = chatViewModel.getCurrentTime(),
+            senderId = user.userId,
+            receiverId = user.userId,
+            viewType = if (isMyMessage) 6 else 5,
+            date = chatViewModel.getCurrentDate(),
+            imagePath = "",
+            filePath = filePath
         )
-        database.updateLastMessageAndTime(
+        db.insertChat(chat)
+        scrollState = null
+        adapter.addChat(chat)
+
+        db.updateLastMessageAndTime(
             user.userId,
             "File",
             chatViewModel.getCurrentTime()
         )
-        setChatsData()
     }
 
     override fun onResume() {
         super.onResume()
-        setChatsData()
+        if (scrollState != null) {
+            binding.chatRecyclerview.layoutManager?.onRestoreInstanceState(scrollState)
+        }
     }
 
     private fun getPath(uri: Uri?): String? {
@@ -480,44 +539,6 @@ class ChatActivity : AppCompatActivity() {
             }
         }
 
-    private suspend fun saveFileToCache(file: File): Boolean =
-        withContext(Dispatchers.IO) {
-            val cw = ContextWrapper(applicationContext)
-            val directory = cw.getDir("chat_files", MODE_PRIVATE)
-            if (!directory.exists()) {
-                directory.mkdir()
-            }
-            val childPath = "FTG_CHAT_FILE_" + System.currentTimeMillis()
-            val myPath = File(directory, "$childPath.${getFileExtension(file)}")
-            filePath = directory.path.toString() + "/" + "$childPath.${getFileExtension(file)}"
-            Log.d("chat_file2", "saveFileToCache: $filePath")
-            var taskCompleted = false
-            try {
-                var fis: FileInputStream? = null
-                var fos: FileOutputStream? = null
-                try {
-                    fis = FileInputStream(file)
-                    fos = FileOutputStream(myPath)
-                    val buffer = ByteArray(1024)
-                    var length: Int
-                    while (fis.read(buffer).also { length = it } > 0) {
-                        fos.write(buffer, 0, length)
-                    }
-                    fos.flush()
-                    taskCompleted = true
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                    taskCompleted = false
-                } finally {
-                    fis?.close()
-                    fos?.close()
-                }
-                return@withContext taskCompleted
-            } catch (e: Exception) {
-                return@withContext taskCompleted
-            }
-        }
-
     private suspend fun saveChatVideoToCache(file: File): Boolean =
         withContext(Dispatchers.IO) {
             val cw = ContextWrapper(applicationContext)
@@ -572,6 +593,7 @@ class ChatActivity : AppCompatActivity() {
         val videoLayout = dialog.findViewById<LinearLayout>(R.id.videoLayout)
         val cameraLayout = dialog.findViewById<LinearLayout>(R.id.cameraLayout)
         val galleryLayout = dialog.findViewById<LinearLayout>(R.id.galleryLayout)
+        val fileLayout = dialog.findViewById<LinearLayout>(R.id.fileLayout)
 
         dialog.window?.setBackgroundDrawableResource(R.drawable.chatbg)
         dialog.window?.setDimAmount(0F)
@@ -614,6 +636,11 @@ class ChatActivity : AppCompatActivity() {
 
         galleryLayout.setOnClickListener {
             galleryIntent()
+            dialog.dismiss()
+        }
+
+        fileLayout.setOnClickListener {
+            pdfFilesIntent()
             dialog.dismiss()
         }
         dialog.show()
@@ -668,5 +695,26 @@ class ChatActivity : AppCompatActivity() {
             Intent.createChooser(intent, "Select Video"),
             CHAT_VIDEO_REQ_CODE
         )
+    }
+
+    private fun allFilesIntent() {
+        val intent = Intent(Intent.ACTION_GET_CONTENT).apply {
+            type = "*/*"
+            addCategory(Intent.CATEGORY_OPENABLE)
+        }
+        startActivityForResult(Intent.createChooser(intent, "Select File"), FILE_REQ_CODE)
+    }
+
+    private fun pdfFilesIntent() {
+        val intent = Intent(Intent.ACTION_GET_CONTENT).apply {
+            type = "application/pdf"
+            addCategory(Intent.CATEGORY_OPENABLE)
+        }
+        startActivityForResult(Intent.createChooser(intent, "Select a PDF file"), FILE_REQ_CODE)
+    }
+
+    override fun onPause() {
+        super.onPause()
+        scrollState = binding.chatRecyclerview.layoutManager?.onSaveInstanceState()
     }
 }

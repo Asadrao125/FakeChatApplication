@@ -74,7 +74,7 @@
                     android:layout_toStartOf="@id/tvLastMessageTime"
                     android:ellipsize="end"
                     android:maxLines="1"
-                    android:text="No Last Message"
+                    android:text="No Message"
                     android:textColor="@color/gray" />
 
                 <TextView

@@ -13,7 +13,6 @@ import androidx.databinding.DataBindingUtil
 import com.android.app.fakechatapp.R
 import com.android.app.fakechatapp.activities.about.AboutActivity
 import com.android.app.fakechatapp.activities.viewimage.ImageViewActivity
-import com.android.app.fakechatapp.database.Database
 import com.android.app.fakechatapp.databinding.ActivityProfileBinding
 import com.android.app.fakechatapp.utils.Constants
 import com.android.app.fakechatapp.utils.SharedPref
@@ -31,7 +30,6 @@ private const val IMAGE_REQ_CODE = 124
 
 class ProfileActivity : AppCompatActivity() {
     private lateinit var binding: ActivityProfileBinding
-    private lateinit var database: Database
     private lateinit var imgBack: ImageView
     private lateinit var toolbarTitle: TextView
     private lateinit var sharedPref: SharedPref
@@ -41,7 +39,6 @@ class ProfileActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = DataBindingUtil.setContentView(this, R.layout.activity_profile)
 
-        database = Database(applicationContext)
         sharedPref = SharedPref(applicationContext)
         imgBack = findViewById(R.id.imgBack)
         toolbarTitle = findViewById(R.id.toolbarTitle)

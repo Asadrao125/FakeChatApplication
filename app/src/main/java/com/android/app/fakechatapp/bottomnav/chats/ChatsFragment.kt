@@ -23,7 +23,7 @@ import com.android.app.fakechatapp.adapters.UserAdapter
 import com.android.app.fakechatapp.activities.archive.ArchiveActivity
 import com.android.app.fakechatapp.activities.chat_screen.ChatActivity
 import com.android.app.fakechatapp.activities.viewimage.ImageViewActivity
-import com.android.app.fakechatapp.database.Database
+import com.android.app.fakechatapp.database.MyDatabase
 import com.android.app.fakechatapp.databinding.FragmentChatsBinding
 import com.android.app.fakechatapp.models.User
 import kotlinx.coroutines.CoroutineScope
@@ -35,7 +35,7 @@ class ChatsFragment : Fragment(), UserAdapter.OnItemClickListener, UserAdapter.O
     UserAdapter.OnItemLongClickListener {
     private lateinit var binding: FragmentChatsBinding
     private lateinit var chatViewModel: ChatViewModel
-    private lateinit var database: Database
+    private lateinit var db: MyDatabase
     private lateinit var userAdapter: UserAdapter
     private var dialogShown = false
 
@@ -50,7 +50,7 @@ class ChatsFragment : Fragment(), UserAdapter.OnItemClickListener, UserAdapter.O
         chatViewModel = ChatViewModel(requireContext())
         binding.lifecycleOwner = this
 
-        database = Database(requireContext())
+        db = MyDatabase(requireContext())
         binding.usersRv.layoutManager = LinearLayoutManager(context)
         binding.usersRv.setHasFixedSize(true)
         userAdapter = UserAdapter(requireContext())
@@ -130,16 +130,15 @@ class ChatsFragment : Fragment(), UserAdapter.OnItemClickListener, UserAdapter.O
     private fun getDataAndSetAdapter() {
         CoroutineScope(Dispatchers.IO).launch {
             val users = withContext(Dispatchers.IO) {
-                database.getAllUsers(0)
+                db.getAllUsers(0)
             }
 
             val count = withContext(Dispatchers.IO) {
-                database.getArchiveCount(1)
+                db.getArchiveCount(1)
             }
 
             withContext(Dispatchers.Main) {
-                if (users != null)
-                    userAdapter.submitList(users)
+                userAdapter.submitList(users)
                 binding.tvArchive.text = count.toString()
             }
         }
@@ -157,13 +156,13 @@ class ChatsFragment : Fragment(), UserAdapter.OnItemClickListener, UserAdapter.O
         tvUsername.text = selectedUser.name
 
         archive.setOnClickListener {
-            database.updateUserArchiveStatus(selectedUser.userId, 1)
+            db.updateUserArchiveStatus(selectedUser.userId, 1)
             getDataAndSetAdapter()
             dialog.dismiss()
         }
         delete.setOnClickListener {
-            database.deleteChat(selectedUser.userId)
-            database.deleteUser(selectedUser.userId)
+            //database.deleteChat(selectedUser.userId)
+            db.deleteUser(selectedUser.userId)
             getDataAndSetAdapter()
             dialog.dismiss()
         }

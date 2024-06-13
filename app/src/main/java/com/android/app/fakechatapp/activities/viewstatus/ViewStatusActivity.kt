@@ -3,20 +3,19 @@ package com.android.app.fakechatapp.activities.viewstatus
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import android.view.View
 import android.view.View.GONE
 import android.view.View.VISIBLE
 import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
 import com.android.app.fakechatapp.R
-import com.android.app.fakechatapp.database.Database
+import com.android.app.fakechatapp.database.MyDatabase
 import com.android.app.fakechatapp.databinding.ActivityViewStatusBinding
 import com.squareup.picasso.Picasso
 import java.io.File
 
 class ViewStatusActivity : AppCompatActivity() {
     private lateinit var binding: ActivityViewStatusBinding
-    private lateinit var database: Database
+    private lateinit var db: MyDatabase
     private lateinit var handler: Handler
     private val backPressRunnable = Runnable { onBackPressed() }
     private var statusId = 0
@@ -26,13 +25,13 @@ class ViewStatusActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = DataBindingUtil.setContentView(this, R.layout.activity_view_status)
-        database = Database(applicationContext)
+        db = MyDatabase(applicationContext)
 
         handler = Handler(Looper.getMainLooper())
         statusId = intent.getIntExtra("status_id", 0)
         statusType = intent.getIntExtra("statusType", 0)
         statusImagePath = intent.getStringExtra("statusImagePath") ?: ""
-        database.updateStatus(1, statusId)
+        db.updateStatus(1, statusId)
 
         if (statusType == 1) {
             binding.tvStatus.visibility = VISIBLE
@@ -58,6 +57,7 @@ class ViewStatusActivity : AppCompatActivity() {
         handler.postDelayed(backPressRunnable, 2000)
     }
 
+    @Deprecated("Deprecated in Java")
     override fun onBackPressed() {
         handler.removeCallbacks(backPressRunnable)
         super.onBackPressed()

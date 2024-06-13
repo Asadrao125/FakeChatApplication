@@ -1,12 +1,12 @@
 package com.android.app.fakechatapp.activities.userprofile
 
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
 import com.android.app.fakechatapp.R
-import com.android.app.fakechatapp.database.Database
+import com.android.app.fakechatapp.database.MyDatabase
 import com.android.app.fakechatapp.databinding.ActivityUserProfileBinding
 import com.android.app.fakechatapp.models.User
 import com.android.app.fakechatapp.utils.SharedPref
@@ -15,7 +15,7 @@ import java.io.File
 
 class UserProfileActivity : AppCompatActivity() {
     private lateinit var binding: ActivityUserProfileBinding
-    private lateinit var database: Database
+    private lateinit var db: MyDatabase
     private lateinit var imgBack: ImageView
     private lateinit var toolbarTitle: TextView
     private lateinit var sharedPref: SharedPref
@@ -27,12 +27,12 @@ class UserProfileActivity : AppCompatActivity() {
         binding = DataBindingUtil.setContentView(this, R.layout.activity_user_profile)
 
         userId = intent.getIntExtra("user_id", 0)
-        database = Database(applicationContext)
+        db = MyDatabase(applicationContext)
         sharedPref = SharedPref(applicationContext)
         imgBack = findViewById(R.id.imgBack)
         toolbarTitle = findViewById(R.id.toolbarTitle)
 
-        user = database.getSingleUser(userId)
+        user = db.getSingleUser(userId)
 
         imgBack.setOnClickListener { onBackPressed() }
         toolbarTitle.text = user.name

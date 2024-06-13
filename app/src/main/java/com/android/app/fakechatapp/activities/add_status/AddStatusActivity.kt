@@ -5,7 +5,6 @@ import android.os.Bundle
 import android.util.DisplayMetrics
 import android.view.View
 import android.view.Window
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
@@ -13,7 +12,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.android.app.fakechatapp.R
 import com.android.app.fakechatapp.adapters.SelectUserAdapter
-import com.android.app.fakechatapp.database.Database
+import com.android.app.fakechatapp.database.MyDatabase
 import com.android.app.fakechatapp.databinding.ActivityAddStatusBinding
 import com.android.app.fakechatapp.models.Status
 import com.android.app.fakechatapp.models.User
@@ -22,7 +21,7 @@ import com.android.app.fakechatapp.utils.RecyclerItemClickListener
 
 class AddStatusActivity : AppCompatActivity() {
     private lateinit var binding: ActivityAddStatusBinding
-    private lateinit var database: Database
+    private lateinit var db: MyDatabase
     private lateinit var user: User
     private lateinit var viewModel: AddStatusViewModel
     private var color: Int = -1
@@ -31,7 +30,7 @@ class AddStatusActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = DataBindingUtil.setContentView(this, R.layout.activity_add_status)
 
-        database = Database(applicationContext)
+        db = MyDatabase(applicationContext)
         viewModel = AddStatusViewModel(applicationContext)
 
         window.statusBarColor = ContextCompat.getColor(this, R.color.whatsapp_green)
@@ -71,9 +70,8 @@ class AddStatusActivity : AppCompatActivity() {
         userRv.layoutManager = LinearLayoutManager(this)
         userRv.setHasFixedSize(true)
 
-        val users = database.getAllUsers(-1)
-        if (users != null) userRv.adapter = SelectUserAdapter(this, users)
-        else Toast.makeText(applicationContext, "Add user first", Toast.LENGTH_SHORT).show()
+        val users = db.getAllUsers(-1)
+        userRv.adapter = SelectUserAdapter(this, users)
 
         userRv.addOnItemTouchListener(
             RecyclerItemClickListener(
@@ -104,7 +102,7 @@ class AddStatusActivity : AppCompatActivity() {
     }
 
     private fun addStatus(text: String) {
-        database.insertStatus(
+        db.insertStatus(
             Status(
                 statusId = 0,
                 statusUploaderId = user.userId,

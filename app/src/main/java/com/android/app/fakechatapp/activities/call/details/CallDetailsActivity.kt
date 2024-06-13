@@ -12,7 +12,7 @@ import com.android.app.fakechatapp.adapters.CallDetailsAdapter
 import com.android.app.fakechatapp.activities.call.audio.CallActivity
 import com.android.app.fakechatapp.activities.call.video.VideoCallActivity
 import com.android.app.fakechatapp.activities.viewimage.ImageViewActivity
-import com.android.app.fakechatapp.database.Database
+import com.android.app.fakechatapp.database.MyDatabase
 import com.android.app.fakechatapp.databinding.ActivityCallDetailsBinding
 import com.android.app.fakechatapp.models.Call
 import com.squareup.picasso.Picasso
@@ -26,7 +26,7 @@ class CallDetailsActivity : AppCompatActivity() {
     private lateinit var binding: ActivityCallDetailsBinding
     private lateinit var imgBack: ImageView
     private lateinit var toolbarTitle: TextView
-    private lateinit var database: Database
+    private lateinit var db: MyDatabase
     private lateinit var callAdapter: CallDetailsAdapter
     private lateinit var viewModel: CallDetailsActivityViewModel
     private var userId: Int = 0
@@ -45,7 +45,7 @@ class CallDetailsActivity : AppCompatActivity() {
         profilePath = intent.getStringExtra("profile_path") ?: ""
         imgBack = findViewById(R.id.imgBack)
         toolbarTitle = findViewById(R.id.toolbarTitle)
-        database = Database(applicationContext)
+        db = MyDatabase(applicationContext)
 
         imgBack.setOnClickListener { onBackPressed() }
 
@@ -69,7 +69,7 @@ class CallDetailsActivity : AppCompatActivity() {
         }
 
         binding.imgAudioCall.setOnClickListener {
-            val callId = database.insertCall(
+            val callId = db.insertCall(
                 Call(
                     callId = 0,
                     callReceiverId = userId,
@@ -92,7 +92,7 @@ class CallDetailsActivity : AppCompatActivity() {
         }
 
         binding.imgVideoCall.setOnClickListener {
-            val callId = database.insertCall(
+            val callId = db.insertCall(
                 Call(
                     callId = 0,
                     callReceiverId = userId,
@@ -123,7 +123,7 @@ class CallDetailsActivity : AppCompatActivity() {
     private fun getDataAndSetAdapter() {
         CoroutineScope(Dispatchers.IO).launch {
             val calls = withContext(Dispatchers.IO) {
-                database.getAllCallsByUser(userId)
+                db.getAllCallsByUser(userId)
             }
 
             withContext(Dispatchers.Main) {

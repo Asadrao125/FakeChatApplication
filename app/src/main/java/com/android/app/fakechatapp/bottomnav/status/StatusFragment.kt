@@ -13,12 +13,11 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.android.app.fakechatapp.R
-import com.android.app.fakechatapp.adapters.StatusMutedAdapter
 import com.android.app.fakechatapp.adapters.StatusRecentAdapter
 import com.android.app.fakechatapp.adapters.StatusViewedAdapter
-import com.android.app.fakechatapp.database.Database
 import com.android.app.fakechatapp.databinding.FragmentStatusBinding
 import com.android.app.fakechatapp.activities.add_status.AddStatusActivity
+import com.android.app.fakechatapp.database.MyDatabase
 import com.android.app.fakechatapp.utils.Constants
 import com.android.app.fakechatapp.utils.DialogCustomProgress
 import com.android.app.fakechatapp.utils.SharedPref
@@ -31,7 +30,7 @@ import java.io.File
 
 class StatusFragment : Fragment() {
     private lateinit var binding: FragmentStatusBinding
-    private lateinit var database: Database
+    private lateinit var db: MyDatabase
     private lateinit var statusRecentAdapter: StatusRecentAdapter
     private lateinit var statusViewedAdapter: StatusViewedAdapter
 
@@ -50,7 +49,7 @@ class StatusFragment : Fragment() {
     ): View {
         binding = FragmentStatusBinding.inflate(inflater, container, false)
         dialog = DialogCustomProgress(activity)
-        database = Database(requireContext())
+        db = MyDatabase(requireContext())
         sharedPref = SharedPref(requireContext())
 
         // Recycler Recent
@@ -138,7 +137,7 @@ class StatusFragment : Fragment() {
     fun getDataAndSetAdapter() {
         CoroutineScope(Dispatchers.IO).launch {
             val statusRecent = withContext(Dispatchers.IO) {
-                database.getAllStatus(0)
+                db.getAllStatus(0)
             }
 
             withContext(Dispatchers.Main) {
@@ -153,7 +152,7 @@ class StatusFragment : Fragment() {
             }
 
             val statusViewed = withContext(Dispatchers.IO) {
-                database.getAllStatus(1)
+                db.getAllStatus(1)
             }
 
             withContext(Dispatchers.Main) {

@@ -1,22 +1,21 @@
 package com.android.app.fakechatapp.activities.call.audio
 
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.Handler
 import android.widget.ImageView
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
 import com.android.app.fakechatapp.R
-import com.android.app.fakechatapp.database.Database
+import com.android.app.fakechatapp.database.MyDatabase
 import com.android.app.fakechatapp.databinding.ActivityCallBinding
-import com.android.app.fakechatapp.models.User
 import com.squareup.picasso.Picasso
 import java.io.File
 
 class CallActivity : AppCompatActivity() {
     private lateinit var binding: ActivityCallBinding
     private lateinit var callViewModel: CallActivityViewModel
-    private lateinit var database: Database
+    private lateinit var db: MyDatabase
     private var userName = ""
     private var callId: Long = 0
     private var userId: Int = 0
@@ -37,7 +36,7 @@ class CallActivity : AppCompatActivity() {
         binding = DataBindingUtil.setContentView(this, R.layout.activity_call)
 
         callViewModel = CallActivityViewModel(applicationContext)
-        database = Database(applicationContext)
+        db = MyDatabase(applicationContext)
 
         userName = intent.getStringExtra("user_name")!!
         callId = intent.getLongExtra("call_id", 0)
@@ -106,7 +105,7 @@ class CallActivity : AppCompatActivity() {
                     val minutes = (secondsElapsed % 3600) / 60
                     val seconds = secondsElapsed % 60
                     binding.tvTimer.text = String.format("%02d:%02d", minutes, seconds)
-                    database.updateCallDuration(
+                    db.updateCallDuration(
                         String.format("%02d:%02d", minutes, seconds),
                         callId
                     )

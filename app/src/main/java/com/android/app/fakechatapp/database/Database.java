@@ -93,21 +93,6 @@ public class Database {
     /*
     * CREATE TABLE "Users" (
 	"userId"	INTEGER PRIMARY KEY AUTOINCREMENT,
-	"profileImage"	BLOB,
-	"name"	TEXT,
-	"aboutInfo"	TEXT,
-	"lastSeen"	TEXT,
-	"phoneNo"	TEXT,
-	"date"	TEXT,
-	"isVerified"	INTEGER,
-	"isArchive"	INTEGER,
-	"encryptedText"	TEXT,
-	"lastMessage"	TEXT);
-    */
-
-    /*
-    * CREATE TABLE "Users" (
-	"userId"	INTEGER PRIMARY KEY AUTOINCREMENT,
 	"profileImage"	TEXT,
 	"name"	TEXT,
 	"aboutInfo"	TEXT,
@@ -354,19 +339,6 @@ public class Database {
         sqLiteDatabase.execSQL(query);
         close();
     }
-
-    /*
-    * CREATE TABLE "Calls" (
-	"callId"	INTEGER PRIMARY KEY AUTOINCREMENT,
-	"callReceiverId"	INTEGER,
-	"userName"	TEXT,
-	"callDirection"	TEXT,
-	"date"	TEXT,
-	"time"	TEXT,
-	"callType"	TEXT,
-	"callDuration"	TEXT,
-	"callProfileImage"	BLOB);
-    */
 
     /*
     *CREATE TABLE "Calls" (

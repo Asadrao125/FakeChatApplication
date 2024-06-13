@@ -8,26 +8,19 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.RelativeLayout
 import android.widget.TextView
-import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.android.app.fakechatapp.R
-import com.android.app.fakechatapp.database.Database
 import com.android.app.fakechatapp.models.Status
 import com.android.app.fakechatapp.activities.viewstatus.ViewStatusActivity
 import com.bumptech.glide.Glide
-import com.squareup.picasso.Picasso
-import java.io.File
-
 
 class StatusMutedAdapter(private var context: Context) :
     RecyclerView.Adapter<StatusMutedAdapter.MyViewHolder>() {
-    private lateinit var database: Database
     private var mList: ArrayList<Status> = arrayListOf()
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MyViewHolder {
         val view: View =
             LayoutInflater.from(context).inflate(R.layout.item_status_muted, parent, false)
-        database = Database(context)
         return MyViewHolder(view)
     }
 

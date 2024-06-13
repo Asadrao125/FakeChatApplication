@@ -1,19 +1,19 @@
 package com.android.app.fakechatapp.activities.archive
 
+import android.annotation.SuppressLint
 import android.app.AlertDialog
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
-import android.view.View.GONE
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.android.app.fakechatapp.R
 import com.android.app.fakechatapp.adapters.UserAdapter
-import com.android.app.fakechatapp.database.Database
+import com.android.app.fakechatapp.database.MyDatabase
 import com.android.app.fakechatapp.databinding.ActivityArchiveBinding
 import com.android.app.fakechatapp.models.User
 import com.android.app.fakechatapp.utils.RecyclerItemClickListener
@@ -26,11 +26,12 @@ class ArchiveActivity : AppCompatActivity() {
     private lateinit var binding: ActivityArchiveBinding
     private lateinit var imgBack: ImageView
     private lateinit var toolbarTitle: TextView
-    private lateinit var database: Database
+    private lateinit var db: MyDatabase
     private lateinit var userAdapter: UserAdapter
     private lateinit var viewModel: ArchiveViewModel
     private var dialogShown = false
 
+    @SuppressLint("SetTextI18n")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = DataBindingUtil.setContentView(this, R.layout.activity_archive)
@@ -44,7 +45,7 @@ class ArchiveActivity : AppCompatActivity() {
         imgBack.setOnClickListener { onBackPressed() }
         toolbarTitle.text = "Archived Chats"
 
-        database = Database(applicationContext)
+        db = MyDatabase(applicationContext)
         binding.usersRv.layoutManager = LinearLayoutManager(applicationContext)
         binding.usersRv.setHasFixedSize(true)
         userAdapter = UserAdapter(this)
@@ -59,13 +60,11 @@ class ArchiveActivity : AppCompatActivity() {
     private fun getDataAndSetAdapter() {
         CoroutineScope(Dispatchers.IO).launch {
             val users = withContext(Dispatchers.IO) {
-                database.getAllUsers(1)
+                db.getAllUsers(1)
             }
 
             withContext(Dispatchers.Main) {
-                if (users != null)
-                    userAdapter.submitList(users)
-                else binding.usersRv.visibility = GONE
+                userAdapter.submitList(users)
 
                 binding.usersRv.addOnItemTouchListener(
                     RecyclerItemClickListener(
@@ -86,6 +85,7 @@ class ArchiveActivity : AppCompatActivity() {
         }
     }
 
+    @SuppressLint("SetTextI18n")
     private fun showCustomDialog(selectedUser: User) {
         val dialogView =
             LayoutInflater.from(this).inflate(R.layout.popup_layout, null)
@@ -101,13 +101,13 @@ class ArchiveActivity : AppCompatActivity() {
         tvUsername.text = selectedUser.name
 
         archive.setOnClickListener {
-            database.updateUserArchiveStatus(selectedUser.userId, 0)
+            db.updateUserArchiveStatus(selectedUser.userId, 0)
             getDataAndSetAdapter()
             dialog.dismiss()
         }
         delete.setOnClickListener {
-            database.deleteChat(selectedUser.userId)
-            database.deleteUser(selectedUser.userId)
+            db.deleteChat(selectedUser.userId)
+            db.deleteUser(selectedUser.userId)
             getDataAndSetAdapter()
             dialog.dismiss()
         }

@@ -11,9 +11,8 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
-import androidx.lifecycle.lifecycleScope
 import com.android.app.fakechatapp.R
-import com.android.app.fakechatapp.database.Database
+import com.android.app.fakechatapp.database.MyDatabase
 import com.android.app.fakechatapp.databinding.ActivityAddUserBinding
 import com.android.app.fakechatapp.models.User
 import kotlinx.coroutines.CoroutineScope
@@ -31,7 +30,7 @@ class AddUserActivity : AppCompatActivity() {
     private lateinit var binding: ActivityAddUserBinding
     private lateinit var addUserViewModel: AddUserViewModel
     private var lastSeen: String = "Hide last seen"
-    private lateinit var database: Database
+    private lateinit var db: MyDatabase
     private lateinit var imgBack: ImageView
     private lateinit var toolbarTitle: TextView
     private var filePath = ""
@@ -43,7 +42,7 @@ class AddUserActivity : AppCompatActivity() {
         addUserViewModel = AddUserViewModel(applicationContext)
         binding.mainViewModel = addUserViewModel
 
-        database = Database(applicationContext)
+        db = MyDatabase(applicationContext)
         imgBack = findViewById(R.id.imgBack)
         toolbarTitle = findViewById(R.id.toolbarTitle)
 
@@ -58,33 +57,28 @@ class AddUserActivity : AppCompatActivity() {
             val phoneNo = binding.edtPhoneNumber.text.toString().trim()
 
             if (name.isNotEmpty() && about.isNotEmpty() && phoneNo.isNotEmpty() && lastSeen.isNotEmpty() && filePath.isNotEmpty()) {
-                lifecycleScope.launch {
-                    val res = withContext(Dispatchers.IO) {
-                        database.insertUser(
-                            User(
-                                userId = 0,
-                                profileImage = filePath,
-                                name = name,
-                                aboutInfo = about,
-                                lastSeen = lastSeen,
-                                phoneNo = phoneNo,
-                                date = addUserViewModel.getCurrentDate(),
-                                isVerified = if (binding.cbVerified.isChecked) 1 else 0,
-                                isArchive = 0,
-                                encryptedText = getString(R.string.whatsapp_encryption_message),
-                                lastMessage = "No message",
-                                lastMsgTime = addUserViewModel.getCurrentTime()
-                            )
-                        )
-                    }
-
-                    if (res > 0) {
-                        Toast.makeText(applicationContext, "User Added!", Toast.LENGTH_SHORT).show()
-                        onBackPressed()
-                    } else
-                        Toast.makeText(applicationContext, "Failed to add user", Toast.LENGTH_SHORT)
-                            .show()
-                }
+                val res = db.insertUser(
+                    User(
+                        userId = 0,
+                        profileImage = filePath,
+                        name = name,
+                        aboutInfo = about,
+                        lastSeen = lastSeen,
+                        phoneNo = phoneNo,
+                        date = addUserViewModel.getCurrentDate(),
+                        isVerified = if (binding.cbVerified.isChecked) 1 else 0,
+                        isArchive = 0,
+                        encryptedText = getString(R.string.whatsapp_encryption_message),
+                        lastMessage = "No message",
+                        lastMsgTime = addUserViewModel.getCurrentTime()
+                    )
+                )
+                if (res > 0) {
+                    Toast.makeText(applicationContext, "User Added!", Toast.LENGTH_SHORT).show()
+                    onBackPressed()
+                } else
+                    Toast.makeText(applicationContext, "Failed to add user", Toast.LENGTH_SHORT)
+                        .show()
             } else {
                 Toast.makeText(this, "Please fill all the details", Toast.LENGTH_SHORT).show()
             }

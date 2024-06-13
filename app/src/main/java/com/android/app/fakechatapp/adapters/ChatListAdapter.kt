@@ -330,6 +330,19 @@ class ChatListAdapter(val context: Context) :
         (context as ChatActivity).scrollToBottom()
     }
 
+    fun addChat(chat: Chat) {
+        mList.add(chat)
+        notifyItemInserted(mList.size - 1)
+        (context as ChatActivity).scrollToBottom()
+    }
+
+    fun addChats(chats: List<Chat>) {
+        val initialSize = mList.size
+        mList.addAll(chats)
+        notifyItemRangeInserted(initialSize, chats.size)
+        (context as ChatActivity).scrollToBottom()
+    }
+
     @SuppressLint("NotifyDataSetChanged")
     fun clearList() {
         this.mList.clear()

@@ -1,5 +1,6 @@
 package com.android.app.fakechatapp
 
+import android.annotation.SuppressLint
 import android.app.Dialog
 import android.content.ContextWrapper
 import android.content.Intent
@@ -16,24 +17,23 @@ import android.view.Window
 import android.widget.ImageView
 import android.widget.PopupWindow
 import android.widget.TextView
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.android.app.fakechatapp.activities.add_status.AddStatusActivity
 import com.android.app.fakechatapp.activities.adduser.AddUserActivity
+import com.android.app.fakechatapp.activities.profile.ProfileActivity
+import com.android.app.fakechatapp.adapters.SelectUserAdapter
 import com.android.app.fakechatapp.bottomnav.adapter.ViewPagerAdapter
 import com.android.app.fakechatapp.bottomnav.calls.CallsFragment
 import com.android.app.fakechatapp.bottomnav.chats.ChatsFragment
 import com.android.app.fakechatapp.bottomnav.communities.CommunityFragment
 import com.android.app.fakechatapp.bottomnav.status.StatusFragment
-import com.android.app.fakechatapp.database.Database
+import com.android.app.fakechatapp.database.MyDatabase
 import com.android.app.fakechatapp.databinding.ActivityMainBinding
-import com.android.app.fakechatapp.activities.add_status.AddStatusActivity
-import com.android.app.fakechatapp.activities.profile.ProfileActivity
-import com.android.app.fakechatapp.adapters.SelectUserAdapter
 import com.android.app.fakechatapp.models.Status
 import com.android.app.fakechatapp.models.User
 import com.android.app.fakechatapp.utils.Constants
@@ -52,7 +52,7 @@ import java.io.IOException
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     private lateinit var mainViewModel: MainViewModel
-    private lateinit var database: Database
+    private lateinit var db: MyDatabase
     private var imagePath = ""
     private lateinit var selectedUser: User
 
@@ -63,8 +63,8 @@ class MainActivity : AppCompatActivity() {
         mainViewModel = MainViewModel()
         binding.mainViewModel = mainViewModel
 
-        database = Database(applicationContext)
-        database.createDatabase()
+        db = MyDatabase(applicationContext)
+        //db.createDatabase()
 
         val adapter = ViewPagerAdapter(supportFragmentManager, lifecycle)
         adapter.addFragment(ChatsFragment())
@@ -139,16 +139,18 @@ class MainActivity : AppCompatActivity() {
     @Deprecated("Deprecated in Java")
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == Constants.IMAGE_REQ_CODE) {
-            try {
-                val bmp =
-                    BitmapFactory.decodeStream(contentResolver.openInputStream(data?.data!!))
-                CoroutineScope(Dispatchers.IO).launch {
-                    saveImageToCache(bmp)
+        if (resultCode == RESULT_OK) {
+            if (requestCode == Constants.IMAGE_REQ_CODE) {
+                try {
+                    val bmp =
+                        BitmapFactory.decodeStream(contentResolver.openInputStream(data?.data!!))
+                    CoroutineScope(Dispatchers.IO).launch {
+                        saveImageToCache(bmp)
+                    }
+                    addStatus(selectedUser)
+                } catch (e: FileNotFoundException) {
+                    e.printStackTrace()
                 }
-                addStatus(selectedUser)
-            } catch (e: FileNotFoundException) {
-                e.printStackTrace()
             }
         }
     }
@@ -168,9 +170,8 @@ class MainActivity : AppCompatActivity() {
         userRv.layoutManager = LinearLayoutManager(this)
         userRv.setHasFixedSize(true)
 
-        val users = database.getAllUsers(-1)
-        if (users != null) userRv.adapter = SelectUserAdapter(this, users)
-        else Toast.makeText(applicationContext, "Add user first", Toast.LENGTH_SHORT).show()
+        val users = db.getAllUsers(-1)
+        userRv.adapter = SelectUserAdapter(this, users)
 
         userRv.addOnItemTouchListener(
             RecyclerItemClickListener(
@@ -199,7 +200,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun addStatus(user: User) {
-        database.insertStatus(
+        db.insertStatus(
             Status(
                 statusId = 0,
                 statusUploaderId = user.userId,
@@ -278,6 +279,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    @SuppressLint("SetTextI18n")
     fun setChatView() {
         binding.imgChats.setBackgroundDrawable(R.drawable.bottom_nav_bg)
         binding.imgStatus.background = null
@@ -303,6 +305,7 @@ class MainActivity : AppCompatActivity() {
         binding.imgCalls.setImageResource(R.drawable.ic_phone)
     }
 
+    @SuppressLint("SetTextI18n")
     fun setStatusView() {
         binding.imgChats.background = null
         binding.imgStatus.setBackgroundDrawable(R.drawable.bottom_nav_bg)
@@ -328,6 +331,7 @@ class MainActivity : AppCompatActivity() {
         binding.imgCalls.setImageResource(R.drawable.ic_phone)
     }
 
+    @SuppressLint("SetTextI18n")
     fun setCommunitiesView() {
         binding.imgChats.background = null
         binding.imgStatus.background = null
@@ -351,6 +355,7 @@ class MainActivity : AppCompatActivity() {
         binding.imgCalls.setImageResource(R.drawable.ic_phone)
     }
 
+    @SuppressLint("SetTextI18n")
     fun setCallsView() {
         binding.imgChats.background = null
         binding.imgStatus.background = null
