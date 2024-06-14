@@ -227,6 +227,7 @@ class ChatListAdapter(val context: Context) :
                         val model = this
                         binding.apply {
                             tvTime.text = model.time
+                            tvFileName.text = model.message
                         }
                     }
                 }
@@ -239,6 +240,7 @@ class ChatListAdapter(val context: Context) :
                         val model = this
                         binding.apply {
                             tvTime.text = model.time
+                            tvFileName.text = model.message
                         }
                     }
                 }

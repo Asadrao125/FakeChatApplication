@@ -1,6 +1,7 @@
 package com.android.app.fakechatapp.utils
 
 import android.content.Context
+import android.widget.Toast
 import androidx.core.content.ContextCompat
 import com.android.app.fakechatapp.R
 import kotlin.random.Random
@@ -17,6 +18,8 @@ class Constants {
         const val CAPTURE_IMAGE_REQ_CODE = 333
         const val CHAT_VIDEO_REQ_CODE = 444
         const val FILE_REQ_CODE = 222
+        const val CAMERA_PERMISSION_CODE_VIDEO = 100
+        const val CAMERA_PERMISSION_CODE_CAPTURE_IMAGE = 101
 
         fun getColorList(context: Context): List<Int> {
             return listOf(
@@ -36,6 +39,10 @@ class Constants {
                 ContextCompat.getColor(context, R.color.r_14),
                 ContextCompat.getColor(context, R.color.r_15),
             )
+        }
+
+        fun showToast(context: Context, msg: String) {
+            Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
         }
 
         fun getRandomColor(context: Context): Int {

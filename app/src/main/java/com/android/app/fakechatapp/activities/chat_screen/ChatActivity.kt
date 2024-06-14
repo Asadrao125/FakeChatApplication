@@ -1,9 +1,13 @@
 package com.android.app.fakechatapp.activities.chat_screen
 
+import android.Manifest
+import android.annotation.SuppressLint
+import android.app.Activity
 import android.app.Dialog
 import android.content.Context
 import android.content.ContextWrapper
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
@@ -24,8 +28,12 @@ import android.webkit.MimeTypeMap
 import android.widget.LinearLayout
 import android.widget.PopupWindow
 import android.widget.TextView
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.android.app.fakechatapp.R
@@ -39,11 +47,14 @@ import com.android.app.fakechatapp.models.Call
 import com.android.app.fakechatapp.models.Chat
 import com.android.app.fakechatapp.models.User
 import com.android.app.fakechatapp.utils.Constants
+import com.android.app.fakechatapp.utils.Constants.Companion.CAMERA_PERMISSION_CODE_CAPTURE_IMAGE
+import com.android.app.fakechatapp.utils.Constants.Companion.CAMERA_PERMISSION_CODE_VIDEO
 import com.android.app.fakechatapp.utils.Constants.Companion.CAPTURE_IMAGE_REQ_CODE
 import com.android.app.fakechatapp.utils.Constants.Companion.CHAT_VIDEO_REQ_CODE
 import com.android.app.fakechatapp.utils.Constants.Companion.FILE_REQ_CODE
 import com.android.app.fakechatapp.utils.Constants.Companion.IMAGE_REQ_CODE
 import com.android.app.fakechatapp.utils.Constants.Companion.VIDEO_REQ_CODE
+import com.android.app.fakechatapp.utils.Constants.Companion.showToast
 import com.android.app.fakechatapp.utils.SharedPref
 import com.squareup.picasso.Picasso
 import kotlinx.coroutines.CoroutineScope
@@ -52,7 +63,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileInputStream
-import java.io.FileNotFoundException
 import java.io.FileOutputStream
 import java.io.IOException
 
@@ -67,12 +77,19 @@ class ChatActivity : AppCompatActivity() {
     private var imagePath = ""
     private var filePath = ""
     private var isMyMessage: Boolean = true
-
     private var scrollState: Parcelable? = null
+
+    private lateinit var videoPickerLauncher: ActivityResultLauncher<Intent>
+    private lateinit var videoCallPickerLauncher: ActivityResultLauncher<Intent>
+    private lateinit var cameraLauncher: ActivityResultLauncher<Intent>
+    private lateinit var galleryLauncher: ActivityResultLauncher<Intent>
+    private lateinit var pdfPickerLauncher: ActivityResultLauncher<Intent>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = DataBindingUtil.setContentView(this, R.layout.activity_chat)
+
+        registerLaunchers()
 
         chatViewModel = ChatActivityViewModel(applicationContext)
         binding.mainViewModel = chatViewModel
@@ -119,7 +136,7 @@ class ChatActivity : AppCompatActivity() {
             override fun afterTextChanged(p0: Editable?) {}
         })
 
-        binding.imgCamera.setOnClickListener { cameraIntent() }
+        binding.imgCamera.setOnClickListener { showSendReceiveDialog(openDirectCam = true) }
 
         binding.imgBack.setOnClickListener { onBackPressed() }
 
@@ -192,16 +209,7 @@ class ChatActivity : AppCompatActivity() {
         }
 
         binding.imgVideoCall.setOnClickListener {
-            val res = sharedPref.read(Constants.VIDEO_PATH, "No")
-            if (res == "No") {
-                val intent = Intent()
-                intent.type = "video/*"
-                intent.action = Intent.ACTION_GET_CONTENT
-                startActivityForResult(
-                    Intent.createChooser(intent, "Select Video"),
-                    VIDEO_REQ_CODE
-                )
-            } else startVideoCall()
+            requestCameraPermissionVideo()
         }
 
         binding.name.setOnClickListener {
@@ -214,13 +222,66 @@ class ChatActivity : AppCompatActivity() {
         }
 
         binding.imgAttachment.setOnClickListener {
-            showSendReceiveDialog()
+            requestCameraPermissionCaptureImage()
         }
 
         setChatsData()
 
         binding.imgMenu.setOnClickListener {
             showChatMenuDialog()
+        }
+    }
+
+    private fun requestCameraPermissionVideo() {
+        if (ContextCompat.checkSelfPermission(applicationContext, Manifest.permission.CAMERA)
+            != PackageManager.PERMISSION_GRANTED
+        ) {
+            ActivityCompat.requestPermissions(
+                this,
+                arrayOf(Manifest.permission.CAMERA),
+                CAMERA_PERMISSION_CODE_VIDEO
+            )
+        } else {
+            val res = sharedPref.read(Constants.VIDEO_PATH, "No")
+            if (res == "No") videoCallPickerIntent()
+            else startVideoCall()
+        }
+    }
+
+    private fun requestCameraPermissionCaptureImage() {
+        if (ContextCompat.checkSelfPermission(applicationContext, Manifest.permission.CAMERA)
+            != PackageManager.PERMISSION_GRANTED
+        ) {
+            ActivityCompat.requestPermissions(
+                this,
+                arrayOf(Manifest.permission.CAMERA),
+                CAMERA_PERMISSION_CODE_CAPTURE_IMAGE
+            )
+        } else showSendReceiveDialog(openDirectCam = false)
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        when (requestCode) {
+            CAMERA_PERMISSION_CODE_VIDEO -> {
+                if ((grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
+                    val res = sharedPref.read(Constants.VIDEO_PATH, "No")
+                    if (res == "No") videoCallPickerIntent()
+                    else startVideoCall()
+                } else showToast(applicationContext, "Camera permission required")
+            }
+
+            CAMERA_PERMISSION_CODE_CAPTURE_IMAGE -> {
+                if ((grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
+                    showSendReceiveDialog(openDirectCam = false)
+                } else {
+                    showToast(applicationContext, "Camera permission required")
+                }
+            }
         }
     }
 
@@ -280,46 +341,62 @@ class ChatActivity : AppCompatActivity() {
                 val selectedVideoPath = getPath(selectedImageUri)
                 if (selectedVideoPath != null) {
                     CoroutineScope(Dispatchers.IO).launch {
-                        saveVideoToCache(File(selectedVideoPath))
+                        val success = saveVideoToCache(File(selectedVideoPath))
+                        withContext(Dispatchers.Main) {
+                            if (success) startVideoCall()
+                            else showToast(applicationContext, "Failed to upload video")
+                        }
                     }
-                    startVideoCall()
                 }
             } else if (requestCode == IMAGE_REQ_CODE) {
-                try {
-                    val bmp =
-                        BitmapFactory.decodeStream(contentResolver.openInputStream(data?.data!!))
+                val imageData = data?.data
+                if (imageData != null) {
+                    val bmp = BitmapFactory.decodeStream(contentResolver.openInputStream(imageData))
                     CoroutineScope(Dispatchers.IO).launch {
-                        saveImageToCache(bmp)
+                        val success = saveImageToCache(bmp)
+                        withContext(Dispatchers.Main) {
+                            if (success) saveImageMessage()
+                            else showToast(applicationContext, "Failed to send image")
+                        }
                     }
-                    saveImageMessage()
-                } catch (e: FileNotFoundException) {
-                    e.printStackTrace()
                 }
             } else if (requestCode == CAPTURE_IMAGE_REQ_CODE) {
-                try {
-                    val bmp = data!!.extras!!["data"] as Bitmap
+                val imageData = data?.data
+                if (imageData != null) {
+                    val bmp = BitmapFactory.decodeStream(contentResolver.openInputStream(imageData))
                     CoroutineScope(Dispatchers.IO).launch {
-                        saveImageToCache(bmp)
+                        val success = saveImageToCache(bmp)
+                        withContext(Dispatchers.Main) {
+                            if (success) saveImageMessage()
+                            else showToast(applicationContext, "Failed to send image")
+                        }
                     }
-                    saveImageMessage()
-                } catch (e: FileNotFoundException) {
-                    e.printStackTrace()
                 }
             } else if (requestCode == CHAT_VIDEO_REQ_CODE) {
-                val selectedImageUri = data?.data
-                val selectedVideoPath = getPath(selectedImageUri)
-                if (selectedVideoPath != null) {
-                    CoroutineScope(Dispatchers.IO).launch {
-                        saveChatVideoToCache(File(selectedVideoPath))
-                    }
-                    saveChatVideoMessage()
-                }
+                val selectedVideoUri = data?.data
+                if (selectedVideoUri != null) {
+                    val selectedVideoPath = getPath(selectedVideoUri)
+                    if (selectedVideoPath != null) {
+                        CoroutineScope(Dispatchers.IO).launch {
+                            val success = saveChatVideoToCache(File(selectedVideoPath))
+                            withContext(Dispatchers.Main) {
+                                if (success) saveChatVideoMessage()
+                                else showToast(applicationContext, "Failed to send video")
+                            }
+                        }
+                    } else showToast(applicationContext, "Failed to send video")
+                } else showToast(applicationContext, "Failed to send video")
+
             } else if (requestCode == FILE_REQ_CODE) {
                 data?.data?.let { uri ->
                     CoroutineScope(Dispatchers.IO).launch {
-                        saveFileToCache(uri)
+                        val fileName = getFileName(uri)
+                        val success = saveFileToCache(uri)
+                        withContext(Dispatchers.Main) {
+                            if (success) saveFileMessage(fileName)
+                            else showToast(applicationContext, "Failed to send file")
+                        }
                     }
-                    saveFileMessage(getFileName(uri))
                 }
             }
         }
@@ -327,16 +404,18 @@ class ChatActivity : AppCompatActivity() {
 
     private fun getFileName(uri: Uri): String {
         var fileName: String? = null
-        val cursor = contentResolver.query(uri, null, null, null, null)
-        cursor?.use {
-            if (it.moveToFirst()) {
-                val displayNameIndex = it.getColumnIndex(OpenableColumns.DISPLAY_NAME)
-                if (displayNameIndex != -1) {
-                    fileName = it.getString(displayNameIndex)
+        contentResolver?.let { contentResolver ->
+            val cursor = contentResolver.query(uri, null, null, null, null)
+            cursor?.use {
+                if (it.moveToFirst()) {
+                    val displayNameIndex = it.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+                    if (displayNameIndex != -1) {
+                        fileName = it.getString(displayNameIndex)
+                    }
                 }
             }
         }
-        return fileName ?: "file"
+        return fileName ?: "File"
     }
 
     private suspend fun saveFileToCache(uri: Uri): Boolean = withContext(Dispatchers.IO) {
@@ -454,6 +533,7 @@ class ChatActivity : AppCompatActivity() {
         }
     }
 
+    @SuppressLint("Recycle")
     private fun getPath(uri: Uri?): String? {
         val projection = arrayOf(MediaStore.Video.Media.DATA)
         val cursor = contentResolver.query(uri!!, projection, null, null, null)
@@ -646,7 +726,7 @@ class ChatActivity : AppCompatActivity() {
         dialog.show()
     }
 
-    private fun showSendReceiveDialog() {
+    private fun showSendReceiveDialog(openDirectCam: Boolean) {
         val dialog = Dialog(this)
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
         dialog.setContentView(R.layout.dialog_send_and_recieve_layout)
@@ -658,13 +738,15 @@ class ChatActivity : AppCompatActivity() {
 
         receiveLayout.setOnClickListener {
             isMyMessage = false
-            showAttachmentDialog()
+            if (openDirectCam) cameraIntent()
+            else showAttachmentDialog()
             dialog.dismiss()
         }
 
         sendLayout.setOnClickListener {
             isMyMessage = true
-            showAttachmentDialog()
+            if (openDirectCam) cameraIntent()
+            else showAttachmentDialog()
             dialog.dismiss()
         }
 
@@ -679,22 +761,28 @@ class ChatActivity : AppCompatActivity() {
     private fun galleryIntent() {
         val photoPickerIntent = Intent(Intent.ACTION_PICK)
         photoPickerIntent.type = "image/*"
-        startActivityForResult(photoPickerIntent, IMAGE_REQ_CODE)
+        galleryLauncher.launch(photoPickerIntent)
     }
 
     private fun cameraIntent() {
         val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
-        startActivityForResult(intent, CAPTURE_IMAGE_REQ_CODE)
+        cameraLauncher.launch(intent)
     }
 
     private fun videoIntent() {
-        val intent = Intent()
-        intent.type = "video/*"
-        intent.action = Intent.ACTION_GET_CONTENT
-        startActivityForResult(
-            Intent.createChooser(intent, "Select Video"),
-            CHAT_VIDEO_REQ_CODE
-        )
+        val intent = Intent(Intent.ACTION_GET_CONTENT).apply {
+            type = "video/*"
+            addCategory(Intent.CATEGORY_OPENABLE)
+        }
+        videoPickerLauncher.launch(Intent.createChooser(intent, "Select Video"))
+    }
+
+    private fun videoCallPickerIntent() {
+        val intent = Intent(Intent.ACTION_GET_CONTENT).apply {
+            type = "video/*"
+            addCategory(Intent.CATEGORY_OPENABLE)
+        }
+        videoCallPickerLauncher.launch(Intent.createChooser(intent, "Select Video"))
     }
 
     private fun allFilesIntent() {
@@ -702,7 +790,7 @@ class ChatActivity : AppCompatActivity() {
             type = "*/*"
             addCategory(Intent.CATEGORY_OPENABLE)
         }
-        startActivityForResult(Intent.createChooser(intent, "Select File"), FILE_REQ_CODE)
+        pdfPickerLauncher.launch(Intent.createChooser(intent, "Select a PDF file"))
     }
 
     private fun pdfFilesIntent() {
@@ -710,11 +798,126 @@ class ChatActivity : AppCompatActivity() {
             type = "application/pdf"
             addCategory(Intent.CATEGORY_OPENABLE)
         }
-        startActivityForResult(Intent.createChooser(intent, "Select a PDF file"), FILE_REQ_CODE)
+        pdfPickerLauncher.launch(Intent.createChooser(intent, "Select a PDF file"))
     }
 
     override fun onPause() {
         super.onPause()
         scrollState = binding.chatRecyclerview.layoutManager?.onSaveInstanceState()
+    }
+
+    private fun registerLaunchers() {
+        pdfPickerLauncher =
+            registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+                if (result.resultCode == Activity.RESULT_OK) {
+                    val data = result.data
+                    handlePdfResult(data)
+                }
+            }
+
+        galleryLauncher =
+            registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+                if (result.resultCode == Activity.RESULT_OK) {
+                    val data = result.data
+                    handleGalleryResult(data)
+                }
+            }
+
+        cameraLauncher =
+            registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+                if (result.resultCode == Activity.RESULT_OK) {
+                    val data = result.data
+                    handleCameraResult(data)
+                }
+            }
+
+        videoPickerLauncher =
+            registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+                if (result.resultCode == Activity.RESULT_OK) {
+                    val data = result.data
+                    handleVideoResult(data)
+                }
+            }
+
+        videoCallPickerLauncher =
+            registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+                if (result.resultCode == Activity.RESULT_OK) {
+                    val data = result.data
+                    handleVideoPickerResult(data)
+                }
+            }
+    }
+
+    private fun handleVideoResult(data: Intent?) {
+        val selectedVideoUri = data?.data
+        if (selectedVideoUri != null) {
+            val selectedVideoPath = getPath(selectedVideoUri)
+            if (selectedVideoPath != null) {
+                CoroutineScope(Dispatchers.IO).launch {
+                    val success = saveChatVideoToCache(File(selectedVideoPath))
+                    withContext(Dispatchers.Main) {
+                        if (success) saveChatVideoMessage()
+                        else showToast(applicationContext, "Failed to send video")
+                    }
+                }
+            } else showToast(applicationContext, "Failed to send video")
+        } else showToast(applicationContext, "Failed to send video")
+    }
+
+    private fun handleVideoPickerResult(data: Intent?) {
+        val selectedVideoUri = data?.data
+        if (selectedVideoUri != null) {
+            val selectedVideoPath = getPath(selectedVideoUri)
+            if (selectedVideoPath != null) {
+                CoroutineScope(Dispatchers.IO).launch {
+                    val success = saveVideoToCache(File(selectedVideoPath))
+                    withContext(Dispatchers.Main) {
+                        if (success) startVideoCall()
+                        else showToast(applicationContext, "Failed to upload video")
+                    }
+                }
+            } else showToast(applicationContext, "Failed to send video")
+        } else showToast(applicationContext, "Failed to send video")
+    }
+
+    private fun handleCameraResult(data: Intent?) {
+        val extras = data?.extras
+        val bmp = extras?.get("data") as? Bitmap
+        if (bmp != null) {
+            CoroutineScope(Dispatchers.IO).launch {
+                val success = saveImageToCache(bmp)
+                withContext(Dispatchers.Main) {
+                    if (success) saveImageMessage()
+                    else showToast(applicationContext, "Failed to send image")
+                }
+            }
+        } else showToast(applicationContext, "Failed to send image")
+    }
+
+    private fun handleGalleryResult(data: Intent?) {
+        val imageData = data?.data
+        if (imageData != null) {
+            val bmp = BitmapFactory.decodeStream(contentResolver.openInputStream(imageData))
+            CoroutineScope(Dispatchers.IO).launch {
+                val success = saveImageToCache(bmp)
+                withContext(Dispatchers.Main) {
+                    if (success) saveImageMessage()
+                    else showToast(applicationContext, "Failed to send image")
+                }
+            }
+        }
+    }
+
+    private fun handlePdfResult(data: Intent?) {
+        data?.data?.let { uri ->
+            CoroutineScope(Dispatchers.IO).launch {
+                val fileName = getFileName(uri)
+                val success = saveFileToCache(uri)
+                withContext(Dispatchers.Main) {
+                    if (success) saveFileMessage(fileName)
+                    else showToast(applicationContext, "Failed to send file")
+                }
+            }
+        }
     }
 }
