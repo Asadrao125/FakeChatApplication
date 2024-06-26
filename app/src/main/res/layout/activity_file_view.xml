@@ -9,17 +9,10 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@color/whatsapp_green"
         android:orientation="vertical"
-        tools:context=".activities.call.videoplay.VideoPlayActivity">
+        tools:context=".activities.viewfile.FileViewActivity">
 
         <include layout="@layout/toolbar_layout" />
-
-        <VideoView
-            android:id="@+id/videoView"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center" />
 
     </LinearLayout>
 

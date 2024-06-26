@@ -11,6 +11,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.android.app.fakechatapp.R
 import com.android.app.fakechatapp.activities.call.videoplay.VideoPlayActivity
 import com.android.app.fakechatapp.activities.chat_screen.ChatActivity
+import com.android.app.fakechatapp.activities.viewfile.FileViewActivity
 import com.android.app.fakechatapp.activities.viewimage.ImageViewActivity
 import com.android.app.fakechatapp.databinding.ItemChatLeftBinding
 import com.android.app.fakechatapp.databinding.ItemChatLeftFileBinding
@@ -228,6 +229,11 @@ class ChatListAdapter(val context: Context) :
                         binding.apply {
                             tvTime.text = model.time
                             tvFileName.text = model.message
+                            itemView.setOnClickListener {
+                                Intent(context, FileViewActivity::class.java)
+                                    .putExtra("file_path", filePath).flags =
+                                    Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+                            }
                         }
                     }
                 }
@@ -241,6 +247,11 @@ class ChatListAdapter(val context: Context) :
                         binding.apply {
                             tvTime.text = model.time
                             tvFileName.text = model.message
+                            itemView.setOnClickListener {
+                                Intent(context, FileViewActivity::class.java)
+                                    .putExtra("file_path", filePath).flags =
+                                    Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+                            }
                         }
                     }
                 }
