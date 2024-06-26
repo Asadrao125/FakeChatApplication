@@ -2,6 +2,7 @@ package com.android.app.fakechatapp.activities.archive
 
 import android.annotation.SuppressLint
 import android.app.AlertDialog
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -12,6 +13,8 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.android.app.fakechatapp.R
+import com.android.app.fakechatapp.activities.chat_screen.ChatActivity
+import com.android.app.fakechatapp.activities.viewimage.ImageViewActivity
 import com.android.app.fakechatapp.adapters.UserAdapter
 import com.android.app.fakechatapp.database.MyDatabase
 import com.android.app.fakechatapp.databinding.ActivityArchiveBinding
@@ -22,7 +25,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-class ArchiveActivity : AppCompatActivity() {
+class ArchiveActivity : AppCompatActivity(), UserAdapter.OnItemClickListener, UserAdapter.OnImageClickListener,
+    UserAdapter.OnItemLongClickListener {
     private lateinit var binding: ActivityArchiveBinding
     private lateinit var imgBack: ImageView
     private lateinit var toolbarTitle: TextView
@@ -50,6 +54,10 @@ class ArchiveActivity : AppCompatActivity() {
         binding.usersRv.setHasFixedSize(true)
         userAdapter = UserAdapter(this)
         binding.usersRv.adapter = userAdapter
+
+        userAdapter.setOnItemClickListener(this)
+        userAdapter.setOnImageClickListener(this)
+        userAdapter.setOnItemLongClickListener(this)
     }
 
     override fun onStart() {
@@ -65,22 +73,6 @@ class ArchiveActivity : AppCompatActivity() {
 
             withContext(Dispatchers.Main) {
                 userAdapter.submitList(users)
-
-                binding.usersRv.addOnItemTouchListener(
-                    RecyclerItemClickListener(
-                        applicationContext,
-                        binding.usersRv,
-                        object : RecyclerItemClickListener.OnItemClickListener {
-                            override fun onItemClick(view: View?, position: Int) {}
-
-                            override fun onItemLongClick(view: View?, position: Int) {
-                                val selectedUser = users[position]
-                                showCustomDialog(selectedUser)
-                                dialogShown = true
-                            }
-                        }
-                    )
-                )
             }
         }
     }
@@ -113,5 +105,30 @@ class ArchiveActivity : AppCompatActivity() {
         }
         dialog.setOnDismissListener { dialogShown = false }
         dialog.show()
+    }
+
+    override fun onItemClick(user: User) {
+        val intent = Intent(this, ChatActivity::class.java)
+        intent.putExtra("user_id", user.userId)
+        intent.putExtra("user_name", user.name)
+        intent.putExtra("last_seen", user.lastSeen)
+        intent.putExtra("date", user.date)
+        intent.putExtra("enc_text", user.encryptedText)
+        startActivity(intent)
+    }
+
+    override fun onImageClick(user: User) {
+        startActivity(
+            Intent(this, ImageViewActivity::class.java)
+                .putExtra("image_path", user.profileImage)
+                .setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+        )
+    }
+
+    override fun onItemLongClick(user: User) {
+        if (!dialogShown) {
+            showCustomDialog(user)
+            dialogShown = true
+        }
     }
 }
